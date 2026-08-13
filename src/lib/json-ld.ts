@@ -17,6 +17,10 @@ const RUBRO_SCHEMA_TYPE: Record<Rubro, string> = {
   // se agregó junto con el caso DeluxTravel (código a medida, 2026-08-13),
   // mismo criterio que joyeria.
   agencia_viajes: "TravelAgency",
+  // VeterinaryCare existe en schema.org como subtipo real de LocalBusiness
+  // (organización médica) — se agregó junto con el caso Moonvet (código a
+  // medida, 2026-08-13), mismo criterio que joyeria/agencia_viajes.
+  veterinaria: "VeterinaryCare",
   servicios: "LocalBusiness",
   otro: "LocalBusiness",
 };

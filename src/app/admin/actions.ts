@@ -12,7 +12,7 @@ import {
 } from "@/lib/admin-tenants";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { supabaseAdmin } from "@/lib/supabase/admin";
-import type { CategoriaProducto, ColoresMarca, DominioTipo, EstadoLanding, FaqItem, FormaPago, Foto, HorarioDia, Nivel, Pilar, Rubro, Plan } from "@/lib/types";
+import { RUBROS_DISPONIBLES, type CategoriaProducto, type ColoresMarca, type DominioTipo, type EstadoLanding, type FaqItem, type FormaPago, type Foto, type HorarioDia, type Nivel, type Pilar, type Rubro, type Plan } from "@/lib/types";
 
 export async function signOutAdminAction(): Promise<void> {
   const supabase = await createServerSupabaseClient();
@@ -139,7 +139,15 @@ function parseFaq(json: string): FaqItem[] {
   }
 }
 
-const RUBROS_VALIDOS = new Set<Rubro>(["restaurante", "cafeteria", "panaderia", "carniceria_tienda", "tienda_retail", "servicios", "otro"]);
+// Derivado de RUBROS_DISPONIBLES (src/lib/types.ts) en vez de una lista
+// aparte a mano — antes era un Set hardcodeado que se desactualizó cada
+// vez que se agregó un rubro nuevo ("joyeria", "agencia_viajes",
+// "veterinaria" nunca llegaron a poder guardarse desde el panel admin
+// porque no estaban en esa lista, aunque sí existían en el <select> —
+// bug descubierto el 2026-08-13 al intentar guardar "veterinaria" para
+// Moonvet). Derivarlo del array ya existente hace que sea imposible que
+// las dos listas se desincronicen otra vez.
+const RUBROS_VALIDOS = new Set<Rubro>(RUBROS_DISPONIBLES.map((r) => r.value));
 function parseRubro(raw: FormDataEntryValue | null): Rubro | null {
   const value = String(raw ?? "").trim();
   return RUBROS_VALIDOS.has(value as Rubro) ? (value as Rubro) : null;

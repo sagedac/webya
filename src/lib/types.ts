@@ -100,7 +100,11 @@ export interface Cifra {
 // cargado el tenant hasta ahora. El registro real en Supabase sigue
 // diciendo "servicios" (no se tocó Supabase para este build) — este valor
 // queda disponible para cuando se actualice el contenido desde el panel.
-export type Rubro = "restaurante" | "cafeteria" | "panaderia" | "carniceria_tienda" | "tienda_retail" | "joyeria" | "agencia_viajes" | "servicios" | "otro";
+// "veterinaria" se agregó junto con el caso Moonvet (código a medida,
+// 2026-08-13) — mismo criterio: VeterinaryCare existe en schema.org como
+// subtipo real de LocalBusiness (organización médica veterinaria) y es
+// más preciso que "servicios" genérico para una clínica veterinaria.
+export type Rubro = "restaurante" | "cafeteria" | "panaderia" | "carniceria_tienda" | "tienda_retail" | "joyeria" | "agencia_viajes" | "veterinaria" | "servicios" | "otro";
 
 export const RUBROS_DISPONIBLES: { value: Rubro; label: string }[] = [
   { value: "restaurante", label: "Restaurante" },
@@ -110,6 +114,7 @@ export const RUBROS_DISPONIBLES: { value: Rubro; label: string }[] = [
   { value: "tienda_retail", label: "Tienda / retail" },
   { value: "joyeria", label: "Joyería" },
   { value: "agencia_viajes", label: "Agencia de viajes" },
+  { value: "veterinaria", label: "Clínica veterinaria" },
   { value: "servicios", label: "Servicios profesionales" },
   { value: "otro", label: "Otro / sin especificar" },
 ];

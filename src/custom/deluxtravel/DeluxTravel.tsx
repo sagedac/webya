@@ -1,6 +1,6 @@
 import { Playfair_Display } from "next/font/google";
 import Image from "next/image";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, MessageCircle } from "lucide-react";
 import type { Foto, TenantWithContent } from "@/lib/types";
 import { ScrollReveal } from "@/engine/ScrollReveal";
 import { Parallax } from "@/engine/Parallax";
@@ -104,6 +104,30 @@ const CREDITOS_UNSPLASH = [
   { nombre: "Drew Walker", perfil: "https://unsplash.com/@drewwalkerphoto" },
 ];
 
+// CTA de WhatsApp más llamativo (pedido explícito de Paul, 2026-08-13):
+// ícono + relleno sólido del color de acento siempre (antes el navbar y
+// los botones "Consultar" de cada destino eran solo un borde, se perdían
+// sobre foto de fondo) + leve elevación al pasar el mouse. `var(--tenant-acento)`
+// en vez del prop `acento` porque este componente vive fuera del closure
+// de `DeluxTravel` (mismo patrón que `Numeral`/`Scrim`, memoria —
+// `--tenant-acento` ya está en el div raíz).
+function WhatsAppCTA({ href, children, size = "md" }: { href: string; children: React.ReactNode; size?: "sm" | "md" }) {
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noreferrer"
+      className={`inline-flex items-center gap-2 rounded-full font-semibold text-[#0b2436] shadow-lg transition hover:-translate-y-0.5 hover:shadow-xl active:translate-y-0 ${
+        size === "sm" ? "px-5 py-2.5 text-sm" : "px-7 py-3.5 text-sm sm:text-base"
+      }`}
+      style={{ backgroundColor: "var(--tenant-acento)" }}
+    >
+      <MessageCircle className={size === "sm" ? "h-4 w-4" : "h-5 w-5"} strokeWidth={2.5} aria-hidden />
+      {children}
+    </a>
+  );
+}
+
 // Numeral gigante — adaptación de la firma visual "filas numeradas
 // grandes" (webya.md sección 7) al formato de pantalla completa: en vez de
 // una lista, el número vive como marca de agua sobre cada bloque de
@@ -187,15 +211,9 @@ export function DeluxTravel({ tenant, content }: TenantWithContent) {
           degradado, sin necesidad de detectar scroll con JS. */}
       <header className="fixed inset-x-0 top-0 z-40 flex items-center justify-between bg-gradient-to-b from-black/55 to-transparent px-6 py-5 sm:px-10">
         <span className={`${playfair.className} text-lg font-semibold tracking-tight text-[#f1ece0]`}>{tenant.nombre}</span>
-        <a
-          href={waHref(content.telefonoWhatsapp)}
-          target="_blank"
-          rel="noreferrer"
-          className="rounded-full border px-4 py-2 text-sm font-medium text-[#f1ece0] backdrop-blur-sm transition hover:opacity-80"
-          style={{ borderColor: acento }}
-        >
+        <WhatsAppCTA href={waHref(content.telefonoWhatsapp)} size="sm">
           WhatsApp
-        </a>
+        </WhatsAppCTA>
       </header>
 
       {/* HERO — único bloque con fotografía de playa "genérica" en el
@@ -217,15 +235,9 @@ export function DeluxTravel({ tenant, content }: TenantWithContent) {
             <p className="mt-6 max-w-xl text-base text-[#f1ece0]/85 sm:text-lg">{content.textos.descripcion}</p>
           </ScrollReveal>
           <ScrollReveal y={16} delay={0.7} duration={0.7}>
-            <a
-              href={waHref(content.telefonoWhatsapp)}
-              target="_blank"
-              rel="noreferrer"
-              className="mt-8 inline-block rounded-full px-7 py-3.5 text-sm font-semibold text-[#0b2436] shadow-lg transition hover:opacity-90"
-              style={{ backgroundColor: acento }}
-            >
-              Escribir por WhatsApp
-            </a>
+            <div className="mt-8">
+              <WhatsAppCTA href={waHref(content.telefonoWhatsapp)}>Escribir por WhatsApp</WhatsAppCTA>
+            </div>
           </ScrollReveal>
         </div>
         <div className="absolute bottom-6 left-1/2 z-10 flex -translate-x-1/2 flex-col items-center gap-1 text-[#f1ece0]/70">
@@ -297,15 +309,11 @@ export function DeluxTravel({ tenant, content }: TenantWithContent) {
                     {precio}
                   </p>
                 )}
-                <a
-                  href={waHref(content.telefonoWhatsapp, `Hola, quisiera más información sobre el paquete a ${cat.nombre}`)}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="mt-6 inline-block rounded-full border px-6 py-2.5 text-sm font-semibold text-[#f1ece0] transition hover:bg-[#f1ece0]/10"
-                  style={{ borderColor: acento }}
-                >
-                  Consultar por WhatsApp
-                </a>
+                <div className="mt-6">
+                  <WhatsAppCTA href={waHref(content.telefonoWhatsapp, `Hola, quisiera más información sobre el paquete a ${cat.nombre}`)}>
+                    Consultar por WhatsApp
+                  </WhatsAppCTA>
+                </div>
               </ScrollReveal>
 
               {meta.postal && (
@@ -451,15 +459,9 @@ export function DeluxTravel({ tenant, content }: TenantWithContent) {
                     ))}
                   </ul>
                 )}
-                <a
-                  href={waHref(content.telefonoWhatsapp)}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="mt-6 inline-block rounded-full px-6 py-3 text-sm font-semibold text-[#0b2436]"
-                  style={{ backgroundColor: acento }}
-                >
-                  Escribir por WhatsApp
-                </a>
+                <div className="mt-6">
+                  <WhatsAppCTA href={waHref(content.telefonoWhatsapp)}>Escribir por WhatsApp</WhatsAppCTA>
+                </div>
               </div>
             </ScrollReveal>
           </div>
@@ -501,16 +503,13 @@ export function DeluxTravel({ tenant, content }: TenantWithContent) {
         </p>
       </footer>
 
-      {/* WhatsApp fijo móvil */}
-      <a
-        href={waHref(content.telefonoWhatsapp)}
-        target="_blank"
-        rel="noreferrer"
-        className="fixed right-5 bottom-5 z-40 rounded-full px-5 py-3 text-sm font-semibold text-[#0b2436] shadow-lg sm:hidden"
-        style={{ backgroundColor: acento }}
-      >
-        WhatsApp
-      </a>
+      {/* WhatsApp fijo móvil — con anillo de pulso detrás (animate-ping,
+          CSS puro) para que el CTA se note incluso quieto en pantalla,
+          además del ícono y el relleno sólido que ya usa todo WhatsAppCTA. */}
+      <div className="fixed right-5 bottom-5 z-40 sm:hidden">
+        <span aria-hidden className="absolute inset-0 animate-ping rounded-full opacity-60" style={{ backgroundColor: acento }} />
+        <WhatsAppCTA href={waHref(content.telefonoWhatsapp)}>WhatsApp</WhatsAppCTA>
+      </div>
     </div>
   );
 }

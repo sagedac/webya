@@ -88,6 +88,11 @@ const UNSPLASH = {
   panamaPlaya: "https://images.unsplash.com/photo-1627512729059-fb322f8436f7?auto=format&fit=crop&w=1920&q=80",
   sanAndresPlaya: "https://images.unsplash.com/photo-1639387130096-7737fc425ec8?auto=format&fit=crop&w=1920&q=80",
   oceanoAtardecer: "https://images.unsplash.com/photo-1616036740257-9449ea1f6605?auto=format&fit=crop&w=1920&q=80",
+  // Reemplaza a pilar-atencion.jpg (2026-08-13, pedido explícito de Paul —
+  // la foto local de un hombre de traje estrechando la mano no encajaba
+  // para este bloque). Dos personas mirando un mapa juntas: transmite
+  // "atención personalizada" sin depender de una cara específica.
+  planificacionMapa: "https://images.unsplash.com/photo-1713815713175-fd9118e6866d?auto=format&fit=crop&w=1920&q=80",
 };
 
 const CREDITOS_UNSPLASH = [
@@ -96,6 +101,7 @@ const CREDITOS_UNSPLASH = [
   { nombre: "Azzedine Rouichi", perfil: "https://unsplash.com/@rouichi" },
   { nombre: "Holger Woizick", perfil: "https://unsplash.com/@howyblackbelt" },
   { nombre: "Sergio Mena Ferreira", perfil: "https://unsplash.com/@sergiomenamx" },
+  { nombre: "Drew Walker", perfil: "https://unsplash.com/@drewwalkerphoto" },
 ];
 
 // Numeral gigante — adaptación de la firma visual "filas numeradas
@@ -127,7 +133,6 @@ export function DeluxTravel({ tenant, content }: TenantWithContent) {
   const fotoAvion = foto(content.fotos, content.fotoDestacada, "hero.jpg", "Ala de avión sobre nubes iluminadas por el atardecer");
   const fotoBuenosAires = foto(content.fotos, content.fotoDestacada, "destino-buenosaires.jpg", "Obelisco de Buenos Aires con un colectivo urbano en primer plano");
   const fotoRio = foto(content.fotos, content.fotoDestacada, "destino-rio.jpg", "Cristo Redentor sobre el cerro Corcovado al atardecer, Río de Janeiro");
-  const fotoAtencion = foto(content.fotos, content.fotoDestacada, "pilar-atencion.jpg", "Asesor de viajes saludando de mano a una clienta");
   const fotoVuelos = foto(content.fotos, content.fotoDestacada, "pilar-vuelos.jpg", "Avión despegando al atardecer sobre la pista");
   const fotoTodoIncluido = foto(content.fotos, content.fotoDestacada, "pilar-todoincluido.jpg", "Vista cenital de una maleta siendo empacada");
   const fotoFaq = foto(content.fotos, content.fotoDestacada, "faq.jpg", "Pasaporte y pase de abordar sobre un equipaje de mano");
@@ -319,14 +324,15 @@ export function DeluxTravel({ tenant, content }: TenantWithContent) {
         </p>
       )}
 
-      {/* POR QUÉ ELEGIRNOS — 3 sub-bloques, cada uno con su propia foto real
-          y su propio tratamiento (el tercero, deliberadamente sin
+      {/* POR QUÉ ELEGIRNOS — 3 sub-bloques (el tercero, deliberadamente sin
           movimiento de fondo, como respiro después de dos bloques con
-          zoom/paneo). */}
+          zoom/paneo). El primero usa una foto de muestra de Unsplash en
+          vez de una foto real — la que había antes (pilar-atencion.jpg)
+          se retiró a pedido explícito de Paul. */}
       {content.pilares.length > 0 && (
         <>
           <section className="relative flex min-h-dvh items-end overflow-hidden">
-            <KenBurnsBg src={fotoAtencion.url} alt={fotoAtencion.alt} />
+            <KenBurnsBg src={UNSPLASH.planificacionMapa} alt="Dos personas planificando un viaje juntas, mirando un mapa sobre la mesa" />
             <Scrim intensidad="via-[#0b2436]/45" />
             <Numeral n="01" speed={0.25} />
             <div className="relative z-10 w-full px-6 pb-20 sm:px-10">

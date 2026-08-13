@@ -1,6 +1,6 @@
 import type { TenantWithContent } from "@/lib/types";
-import { ScrollReveal } from "@/templates/engine/ScrollReveal";
-import { ProductVisual } from "@/templates/engine/ProductVisual";
+import { ScrollReveal } from "@/engine/ScrollReveal";
+import { ProductVisual } from "@/engine/ProductVisual";
 import { PiezasList } from "@/custom/trazojoyas/PiezasList";
 
 // Trazo Joyas — primera página de código a medida bajo el modelo nuevo

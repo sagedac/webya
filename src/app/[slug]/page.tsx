@@ -63,11 +63,9 @@ export default async function TenantPage({ params }: PageProps<"/[slug]">) {
     return <CustomPage {...data} />;
   }
 
-  // Catálogo vaciado el 2026-08-12 (webya.md sección 5, ver
-  // catalogo-plantillas.ts) — sin plantillas de código todavía, cualquier
-  // tenant tipo "template" cae acá y da 404 hasta que se reconstruya el
-  // catálogo. La generación de JSON-LD LocalBusiness (webya.md sección 7)
-  // volverá a este punto, antes del render de la plantilla, en cuanto
-  // exista una plantilla real que renderizar.
+  // Reset del catálogo de plantillas (webya.md sección 5, 2026-08-12): no
+  // existe ni va a reconstruirse un sistema de plantillas reutilizables —
+  // cada negocio nuevo nace como plan="custom_code" (ver más arriba). Un
+  // tenant plan="template" (legado, de antes del reset) cae acá y da 404.
   notFound();
 }

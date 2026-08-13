@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { Search, ChevronRight, Inbox } from "lucide-react";
-import { NIVEL_LABELS } from "@/lib/catalogo-plantillas";
+import { NIVEL_LABELS } from "@/lib/niveles";
 import type { TenantWithContent } from "@/lib/types";
 
 const ESTADO_ESTILO: Record<string, string> = {

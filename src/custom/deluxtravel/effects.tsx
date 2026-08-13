@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { useGSAP } from "@gsap/react";
-import { gsap } from "@/templates/engine/gsap";
+import { gsap } from "@/engine/gsap";
 import type { Testimonio } from "@/lib/types";
 
 // Extensiones de animación específicas de DeluxTravel (webya.md sección 5:

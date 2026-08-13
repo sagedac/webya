@@ -5,7 +5,7 @@ import { Check, ChevronRight, ArrowLeft } from "lucide-react";
 import { crearTenantAction } from "@/app/admin/actions";
 import { slugify } from "@/lib/slug";
 import { inputClass, labelClass, primaryButtonClass, secondaryButtonClass } from "@/lib/form-styles";
-import { NIVEL_LABELS } from "@/lib/catalogo-plantillas";
+import { NIVEL_LABELS } from "@/lib/niveles";
 import type { HorarioDia, Nivel } from "@/lib/types";
 
 const ESTADO_INICIAL = { error: null };

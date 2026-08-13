@@ -3,7 +3,7 @@
 import { useRef, type PointerEvent as ReactPointerEvent } from "react";
 import Image from "next/image";
 import { useGSAP } from "@gsap/react";
-import { gsap } from "@/templates/engine/gsap";
+import { gsap } from "@/engine/gsap";
 
 export interface ProductVisualProps {
   src: string;

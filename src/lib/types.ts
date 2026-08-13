@@ -143,12 +143,12 @@ export interface TenantContent {
   fotoDestacada: Foto | null;
   // "Por qué elegirnos". Vacío = sección omitida en el render.
   pilares: Pilar[];
-  // "Cómo pedir". Vacío = la plantilla usa un set de 3 pasos por defecto.
+  // "Cómo pedir". Vacío = la página puede usar un set de pasos por defecto (a criterio de cada componente).
   pasos: string[];
   formasPago: FormaPago[];
   instagramUrl: string | null;
   facebookUrl: string | null;
-  // FAQ. Vacío = la plantilla usa un set de 3-4 preguntas por defecto.
+  // FAQ. Vacío = la página puede usar un set de preguntas por defecto (a criterio de cada componente).
   faq: FaqItem[];
   // Testimonios y cifras (experimento vitrina-demo). Vacío = sección omitida.
   testimonios: Testimonio[];

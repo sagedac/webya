@@ -2,7 +2,7 @@
 
 import { useRef, type ReactNode } from "react";
 import { useGSAP } from "@gsap/react";
-import { gsap } from "@/templates/engine/gsap";
+import { gsap } from "@/engine/gsap";
 
 export interface ScrollRevealProps {
   children: ReactNode;

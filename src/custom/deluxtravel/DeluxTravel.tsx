@@ -2,8 +2,8 @@ import { Playfair_Display } from "next/font/google";
 import Image from "next/image";
 import { ChevronDown } from "lucide-react";
 import type { Foto, TenantWithContent } from "@/lib/types";
-import { ScrollReveal } from "@/templates/engine/ScrollReveal";
-import { Parallax } from "@/templates/engine/Parallax";
+import { ScrollReveal } from "@/engine/ScrollReveal";
+import { Parallax } from "@/engine/Parallax";
 import { KenBurnsBg, PannerBg, ClipRevealBg, PostcardFloat, WordReveal, CountUp, TestimonialCycle } from "@/custom/deluxtravel/effects";
 
 // DeluxTravel — segunda página de código a medida bajo el modelo de

@@ -8,9 +8,11 @@
 
 ## 0. Instrucciones para Claude Code — leer antes de empezar
 
-- **Alcance del primer build:** enfocarse solo en los pasos 1-5 del roadmap (sección 8) — Nivel 1 completo y funcional de punta a punta: esquema de Supabase, primera plantilla (El Establo), ruteo Fase 1 (path-based, sin dominio), panel administrador, y panel de autoedición. **No intentar construir Niveles 2/3, Fases 2/3 de dominio, ni la integración con Seles todavía** — quedan documentados a propósito para no bloquear la arquitectura, pero son trabajo futuro, no parte de este build.
-- **Migraciones de Supabase:** el proyecto real de Supabase todavía no existe (no hay credenciales aún). Escribir los archivos de migración SQL (tablas `tenants`, `tenant_content`, `admins`, políticas RLS) en `/supabase/migrations/`, bien comentados, pero **no asumir que se pueden ejecutar contra una base de datos real todavía**. Mientras tanto, continuar en paralelo con el resto del código del proyecto (estructura Next.js, componentes de plantilla, lógica del panel administrador y de autoedición) usando ese esquema como referencia. Cuando Paul cree el proyecto Supabase real y provea las credenciales (`SUPABASE_URL`, `SUPABASE_ANON_KEY`, etc.), esas migraciones se ejecutan y se conecta todo.
-- Si hace falta tomar una decisión de diseño no cubierta aquí, preferir la opción más simple que no cierre la puerta a lo ya documentado (plantillas, niveles, dominios, Seles) — no sobre-construir por adelantado.
+**Este documento describe un proyecto ya construido y en producción**, no un build desde cero — las instrucciones originales de bootstrap (esquema Supabase por escribir, primera plantilla por construir, sin credenciales todavía) quedaron obsoletas hace rato y se retiraron de acá; el histórico completo de cómo se llegó hasta acá vive en las notas "Estado (fecha)" repartidas por el documento y en `git log`.
+
+**Estado actual (2026-08-13):** Supabase real conectado y con datos (`.env.local`), desplegado en producción en Vercel (`26st.vercel.app`), repo en GitHub. **No existe sistema de plantillas reutilizables** — ver sección 5, "reset del catálogo" — cada negocio nuevo es una página de código a medida (`plan="custom_code"`), construida por el agente `template-builder` (`.claude/agents/template-builder.md`) o directo en Claude Code, sin catálogo ni "rubro" del que heredar diseño. Los 3 niveles START/PRO/EXPERIENCE se mantienen como estructura comercial, ahora aplicados a código a medida.
+
+- Si hace falta tomar una decisión de diseño no cubierta aquí, preferir la opción más simple que no cierre la puerta a lo ya documentado (niveles, dominios, Seles) — no sobre-construir por adelantado, y no reintroducir un sistema de plantillas reutilizables sin que Paul lo pida explícitamente (ya se intentó y se revirtió una vez, sección 5).
 
 ---
 
@@ -41,12 +43,12 @@ En vez de un solo producto, se ofrecen **3 niveles de landing** (por sofisticaci
 
 | Nivel | Nombre | Qué incluye | Herramientas | Precio sugerido |
 |---|---|---|---|---|
-| **1** | 🟢 START | Fotografía real obligatoria en posiciones prominentes (hero + productos, nunca placeholders genéricos), tipografía con jerarquía fuerte (títulos grandes, seguros), hero asimétrico (alineado a la izquierda) con 1 CTA (WhatsApp), filas de producto numeradas grandes, transición de entrada simple (fade/slide) por CSS puro — sin GSAP/ScrollTrigger, para mantener el nivel liviano | HTML + CSS + JS — sistema de plantillas propio (Next.js) | $99–149 |
+| **1** | 🟢 START | Fotografía real obligatoria en posiciones prominentes (hero + productos, nunca placeholders genéricos), tipografía con jerarquía fuerte (títulos grandes, seguros), hero asimétrico (alineado a la izquierda) con 1 CTA (WhatsApp), filas de producto numeradas grandes, transición de entrada simple (fade/slide) por CSS puro — sin GSAP/ScrollTrigger, para mantener el nivel liviano | HTML + CSS + JS — Next.js, código a medida por negocio | $99–149 |
 | **2** | 🟡 PRO | Todo lo de START + GSAP/ScrollTrigger completo (parallax, marquesina, scroll-reveals), hover y tinte alternado en las filas de producto, 2 CTAs en el hero (WhatsApp + "ver productos") | GSAP + Antigravity (Google) para acelerar generación de diseño/animación | $250–400 |
 | **3** | 🔴 EXPERIENCE | Todo lo de PRO + sección `ProductVisual` (producto flotando, con fotos reales, no modelo 3D) **obligatoria y garantizada, no condicional** — regla de proceso: un tenant Nivel 3 no puede publicarse sin la foto de producto destacado cargada, queda en "borrador" con mensaje claro de qué falta — tipografía de hero aún más grande, indicador de scroll ("Desliza ↓") | GSAP (+ Three.js/WebGL opcional, solo si un caso puntual lo justifica) | $400–800 |
 | **Código a medida** | — | Desde el reset de 2026-08-12 (ver nota de arriba) ya no es un cuarto nivel aparte — es cómo se construyen los 3 niveles de arriba ahora: cada landing es una página propia, sin plantilla reutilizable de por medio | Desarrollo normal | Mismos rangos de precio por nivel que arriba, cotizado según complejidad real del negocio |
 
-**Estado de build (2026-08-11):** implementado en `plantilla_carniceria_pizarra` — hero asimétrico, tipografía, filas numeradas y transición CSS de START; Parallax + ScrollReveal + hover de PRO; `ProductVisual` obligatorio de EXPERIENCE (bloqueado en `actualizarEstadoAction`, `src/app/admin/actions.ts`, si falta `foto_destacada`). **Pendiente:** el efecto de "marquesina" (texto en scroll continuo/ticker) mencionado en PRO todavía no está construido — solo parallax y scroll-reveals lo están.
+**Estado de build:** hero asimétrico, tipografía, filas numeradas y transición CSS de START; Parallax + ScrollReveal + hover de PRO; `ProductVisual` obligatorio de EXPERIENCE (bloqueado en `actualizarEstadoAction`, `src/app/admin/actions.ts`, si falta `foto_destacada`) — todo esto vive hoy en `src/engine/` y se usa desde las páginas de código a medida (`trazojoyas`, `deluxtravel`), no en la plantilla original donde se construyó por primera vez (ya borrada). **Pendiente:** el efecto de "marquesina" (texto en scroll continuo/ticker) mencionado en PRO todavía no está construido — solo parallax y scroll-reveals lo están.
 
 ### Comparación de los 3 niveles
 
@@ -119,13 +121,14 @@ Mercado ecuatoriano para landing simple: $150-300 (agencias van de $147 a $2,800
 
 **Tabla `tenants`:**
 ```
-id, slug, nombre, plan (template | custom_code), nivel (1 | 2 | 3, solo si plan=template),
-plantilla_id (nullable, solo si plan=template),
+id, slug, nombre, plan (template | custom_code), nivel (1 | 2 | 3, obligatorio en los dos planes),
+plantilla_id (nullable, solo si plan=template — legado, sin plantillas nuevas desde el reset de sección 5),
 dominio_tipo (subdominio | dominio_propio), dominio_custom (nullable),
 seles_tenant_id (nullable, futuro), estado_landing (borrador | publicado | pausado), fecha_alta
 ```
+**Estado (2026-08-13):** `nivel` pasó a ser obligatorio para `custom_code` también (antes solo aplicaba a `template`) — migración `20260812200000_custom_code_nivel.sql`, relaja `tenants_plan_fields_check`. Motivo: los 3 niveles siguen siendo estructura comercial (sección 2) aunque ya no exista plantilla de la que depender.
 
-**Tabla `tenant_content`** (aplica a tenants tipo `template`, cualquier nivel):
+**Tabla `tenant_content`** (aplica a cualquier tenant, sea `template` o `custom_code`):
 ```
 tenant_id, textos (jsonb), precios (jsonb), horarios (jsonb), telefono_whatsapp,
 colores_marca (jsonb), fotos (jsonb con urls), foto_destacada (jsonb {url,alt} o null, solo nivel 3 — producto de ProductVisual),
@@ -138,9 +141,9 @@ RLS por `tenant_id`, mismo patrón que Seles.
 
 (`modelos_3d`, pensada originalmente para URLs de GLB, fue renombrada a `foto_destacada` — ver migración `20260811180000_foto_destacada.sql` — cuando Nivel 3/EXPERIENCE pasó a pseudo-3D con fotos en vez de modelo 3D real, sección 2.)
 
-**Tenants tipo `custom_code`:** no usan `tenant_content` genérico — su página vive como componente propio en el código, escrito a mano (o generado con Antigravity) para ese cliente, **dentro del mismo proyecto Next.js** — no como deploy separado. Esta es la decisión estándar: así el cliente hereda automáticamente subdominio/dominio propio, aparece en el panel administrador, y si se decide que ciertos campos sean editables (precio, horario), esos sí se conectan a `tenant_content` igual que cualquier otro tenant; el resto queda fijo en el código.
+**Tenants tipo `custom_code`:** su página vive como componente propio en el código, escrito a mano para ese cliente, **dentro del mismo proyecto Next.js** — no como deploy separado. Esta es la decisión estándar: así el cliente hereda automáticamente subdominio/dominio propio y aparece en el panel administrador. La suposición original de este documento era que `custom_code` "no usa `tenant_content` genérico" salvo campos puntuales — en la práctica (`trazojoyas`, `deluxtravel`) terminó siendo lo contrario: **ambos leen `tenant_content` completo** (textos, precios, fotos, colores, WhatsApp, horarios) igual que hubiera hecho un tenant `template`, y solo la composición/layout del componente es lo que varía por negocio. Es el patrón recomendado de acá en adelante — mantiene todo el contenido editable desde el panel admin sin tocar código, que es justo lo que se perdía al no tener plantilla.
 
-**Estado (2026-08-11):** implementado. La URL sigue siendo la misma `/{slug}` de cualquier tenant (no una ruta `/custom/` aparte) — `src/app/[slug]/page.tsx` revisa `tenant.plan`, y si es `custom_code` busca el componente en `src/custom/registro.ts` (`REGISTRO_CUSTOM`, un mapa `slug → componente`, mismo mecanismo que `CATALOGO_PLANTILLAS` para tenants tipo `template`). Hoy el registro está vacío — no existe ningún cliente custom_code todavía — así que un tenant así, aunque se publique, da 404 hasta que alguien complete el Flujo A de abajo y lo agregue al registro. Antes de este cambio daba 404 siempre, sin excepción posible.
+**Estado (2026-08-13):** `src/app/[slug]/page.tsx` revisa `tenant.plan`, y si es `custom_code` busca el componente en `src/custom/registro.ts` (`REGISTRO_CUSTOM`, un mapa `slug → componente`) — mecanismo único ahora, no hay `CATALOGO_PLANTILLAS` con el que compararlo (se eliminó, ver sección 5). El registro ya no está vacío: `trazojoyas` y `deluxtravel` están dados de alta. Un tenant `custom_code` sin entrada en el registro da 404 al publicarse.
 
 *Excepción:* un deploy Vercel totalmente separado solo se justifica si el cliente pide explícitamente ser dueño del código/hosting — en ese caso deja de ser un tenant de SitioYa y pasa a ser un proyecto de desarrollo tradicional aparte.
 
@@ -150,17 +153,17 @@ RLS por `tenant_id`, mismo patrón que Seles.
 3. Se da de alta en el panel administrador como cualquier tenant, marcado `plan = custom_code`
 4. Hereda subdominio, dominio propio si aplica, y aparece en el dashboard
 
-### Sistema de plantillas (catálogo) — arquitectura "Landing Engine"
+### Motor compartido de animación (`src/engine/`)
 
-No se construyen tres sistemas independientes (uno por nivel). La estrategia es un **Landing Engine** de componentes reutilizables, al que cada nivel le agrega capas progresivas:
+**No es un sistema de plantillas.** Es una caja de herramientas de componentes de animación que cualquier página de código a medida puede importar y usar — cada página sigue siendo un componente único en `src/custom/{slug}/`, escrito para ese negocio, que decide por sí mismo qué combinación de estos módulos usar y cómo. Nada en `src/engine/` sabe qué es un "tenant" ni asume una estructura de secciones fija.
 
-- **Componentes base** (todos los niveles): Navbar, Hero, Products, Services, Gallery, Testimonials, Location, WhatsApp, Footer.
-- **Módulos de animación reutilizables** (Nivel 2/PRO en adelante): ScrollReveal, Parallax, ProductHover, TextAnimation, PageTransition. **Estado (2026-08-11):** `ScrollReveal` y `Parallax` ya están implementados (`src/templates/engine/`, GSAP + `@gsap/react`) y en uso en `plantilla_carniceria_pizarra`. `ProductHover`/`TextAnimation`/`PageTransition` siguen siendo futuro.
-- **Módulos visuales avanzados** (Nivel 3/EXPERIENCE): ProductVisual, Particles, Lighting, y escenas 3D solo cuando un caso puntual lo justifique. **Estado (2026-08-11, tratamiento premium):** `ProductVisual` implementado (`src/templates/engine/`) con tratamiento visual trabajado, no solo una foto flotando: parallax de scroll (la sección se desplaza a velocidad distinta al resto del contenido), glow ambiental con el color de acento de cada tenant (nunca hardcodeado), flotación idle + pedestal sincronizados, marco con borde de acento y marcas de esquina tipo "objeto en exhibición", y al pasar el mouse — escala sutil + intensificación del glow + tilt. Genérico para cualquier rubro. El contenedor del producto (`stageRef`, dimensiones fijas) queda preparado a propósito para recibir un `<model-viewer>` (visor 3D real) más adelante sin rehacer el layout — por ahora es una foto, no un modelo 3D real. `Particles`/`Lighting` siguen siendo futuro. Nota: el negocio ideal para EXPERIENCE es donde el producto es protagonista (los ejemplos de la sección 3 son solo eso, ejemplos — cualquier negocio puede usar cualquier nivel, el sistema se adapta).
+- **`ScrollReveal`** y **`Parallax`** (`src/engine/ScrollReveal.tsx`, `Parallax.tsx`, GSAP + `@gsap/react`): fade/slide-in al entrar en viewport, y desplazamiento a velocidad distinta al scroll. Usados en `trazojoyas` y `deluxtravel`.
+- **`ProductVisual`** (`src/engine/ProductVisual.tsx`): producto "flotando" con parallax de scroll, glow ambiental con el color de acento del tenant (nunca hardcodeado), flotación idle + pedestal sincronizados, marco con marcas de esquina, y tilt/escala al pasar el mouse. Genérico para cualquier rubro donde el producto sea protagonista — no es obligatorio usarlo. El contenedor (`stageRef`, dimensiones fijas) queda preparado a propósito para recibir un `<model-viewer>` (visor 3D real) más adelante sin rehacer el layout.
+- Cada página nueva puede además extender el motor con GSAP directo para efectos propios que no ameritan generalizarse todavía — ver `src/custom/deluxtravel/effects.tsx` (Ken Burns, paneo, wipe/clip-path, postal flotante, texto revelado por palabras, contador numérico) como ejemplo de este patrón.
 
-Cada cliente reutiliza esta misma arquitectura y se personaliza por contenido, imágenes, colores, tipografía y estilo — no por código nuevo. `tenants.plantilla_id` sigue identificando la plantilla base por tipo de negocio; `tenants.nivel` determina qué capas del engine se activan sobre esa plantilla.
+**Estado (2026-08-12, reset del catálogo):** `CATALOGO_PLANTILLAS` quedó vacío — decisión explícita de Paul: el resultado visual de las 4 plantillas construidas hasta ese punto no estaba funcionando, así que se borró todo el código de plantillas (`src/templates/plantilla-*`) para repensar el enfoque de diseño desde cero, en vez de seguir iterando sobre lo ya construido. Impacto asumido a sabiendas: los 8 tenants publicados que dependían de estas plantillas (El Establo, Panadería Doña Carmela, Café Altura, Toquilla Andina, Fuego Callejero → `plantilla_carniceria_pizarra`; Barro Andino, DeluxTravel → `plantilla_vitrina_demo_21st`; Toy Land → `plantilla_jugueteria`) quedaron rotos (404) — sus registros en Supabase (`tenants`/`tenant_content`) no se tocaron en ese momento, solo el código de presentación. El tenant de demo `trazojoyas` (`plantilla_joyeria`, nunca llegó a publicarse) también quedó sin plantilla.
 
-**Estado (2026-08-12, reset del catálogo):** `CATALOGO_PLANTILLAS` (`src/lib/catalogo-plantillas.ts`) quedó vacío — decisión explícita de Paul: el resultado visual de las 4 plantillas construidas hasta ese punto no estaba funcionando, así que se borró todo el código (`src/templates/plantilla-*`, salvo `src/templates/engine/` que se mantiene por ser motor compartido, no plantilla) para repensar el enfoque de diseño desde cero, en vez de seguir iterando sobre lo ya construido. Impacto asumido a sabiendas: los 8 tenants publicados que dependían de estas plantillas (El Establo, Panadería Doña Carmela, Café Altura, Toquilla Andina, Fuego Callejero → `plantilla_carniceria_pizarra`; Barro Andino, DeluxTravel → `plantilla_vitrina_demo_21st`; Toy Land → `plantilla_jugueteria`) quedaron rotos (404) hasta que se construya una plantilla nueva o se les reasigne una — sus registros en Supabase (`tenants`/`tenant_content`) no se tocaron, solo el código de presentación. El tenant de demo `trazojoyas` (`plantilla_joyeria`, nunca llegó a publicarse) también quedó sin plantilla.
+**Estado (2026-08-13, limpieza final del reset):** `src/lib/catalogo-plantillas.ts` se eliminó por completo (ya no tenía nada más que un array vacío) — `NIVEL_LABELS` se movió a `src/lib/niveles.ts`, sin ninguna dependencia de un catálogo. `src/templates/engine/` se renombró a `src/engine/` — vivía bajo `src/templates/` solo porque las plantillas (ya borradas) lo importaban desde ahí; el nombre "templates" ya no describe nada real en el proyecto. `.claude/agents/template-builder.md` se reescribió: ya no describe construir "una plantilla nueva para un rubro que no existe en el catálogo", sino la página de código a medida de un negocio específico — sigue llamándose `template-builder` (nombre del agente, no se renombró el archivo) pero su proceso ya no asume catálogo ni reutilización entre negocios. Se borraron además, a pedido explícito de Paul, los 6 tenants rotos que no se iban a reconstruir (El Establo, Panadería Doña Carmela, Café Altura, Toquilla Andina, Fuego Callejero, Barro Andino) y Toy Land (el octavo, mismo motivo) — de los 8 originales solo sobreviven `trazojoyas` y `deluxtravel`, ya migrados a `custom_code`. **De acá en adelante no hay ningún resto del sistema de plantillas en el código ni en la documentación activa** — lo que queda mencionado abajo es registro histórico explícito, no arquitectura vigente.
 
 **Estado (2026-08-13, primeros dos tenants `custom_code`):** `REGISTRO_CUSTOM` (`src/custom/registro.ts`) ya no está vacío — la nota de la línea de arriba sobre "hoy el registro está vacío" quedó desactualizada. `trazojoyas` (`src/custom/trazojoyas/TrazoJoyas.tsx`, demo, nunca publicada, fotos de muestra Unsplash) fue el primero. `deluxtravel` (`src/custom/deluxtravel/DeluxTravel.tsx`) es el segundo y el primer caso de **revivificación**: tenant real publicado antes del reset (agencia de viajes en Cuenca, dependía de `plantilla_vitrina_demo_21st`), reconstruido como código a medida con su contenido real ya existente en `tenant_content` (no se tocó Supabase). Dirección visual pedida explícitamente para este caso: cada sección a pantalla completa (100dvh), fotografía de playa/mar predominante, animación propia por bloque (extiende `ScrollReveal`/`Parallax` del motor compartido con GSAP directo en `src/custom/deluxtravel/effects.tsx` — Ken Burns, paneo, wipe/clip-path, postal flotante, texto por palabras, contador — documentado ahí mismo). Combina las 7 fotos reales del negocio ya cargadas (`public/tenants/deluxtravel/`) con 5 fotos de paisaje de playa con licencia Unsplash (destino, no producto — la agencia no tiene fotos propias de sus destinos), atribuidas en el footer. De paso se agregó `"agencia_viajes"` (schema.org `TravelAgency`) al enum `Rubro` (`src/lib/types.ts`, `src/lib/json-ld.ts`), mismo criterio que `"joyeria"` — el tenant sigue con `rubro="servicios"` en Supabase hasta que se actualice desde el panel.
 
@@ -172,7 +175,7 @@ Registro histórico de lo que existió antes del reset (por si sirve de referenc
 - `plantilla_vitrina_demo_21st` — experimento comparativo con componentes de 21st MCP (sección 12).
 - `plantilla_restaurante`, `plantilla_servicios_profesional`, `plantilla_tienda_retail` — nunca llegaron a construirse (quedaban como "futuras").
 
-**Estrategia de producción con Antigravity:** construir primero las plantillas base de START, validar estructura y velocidad de producción; luego añadir la capa PRO (animaciones/interacciones); luego EXPERIENCE (profundidad visual, efectos de producto). Medir consumo de IA y tiempo de producción real antes de contratar planes pagos de herramientas adicionales.
+**Estrategia de producción por página:** construir primero la capa START (estructura, contenido real, fotografía), validar con el cliente; luego añadir PRO (animaciones/interacciones) si el nivel contratado lo incluye; luego EXPERIENCE (profundidad visual, `ProductVisual`) si aplica. Medir consumo de IA y tiempo de producción real antes de contratar planes pagos de herramientas adicionales — ya no hay una "plantilla base" que amortizar entre clientes, así que el tiempo por página es el costo real a vigilar.
 
 ### Ruteo — tres escenarios
 
@@ -193,14 +196,14 @@ Upsell natural: dominio propio como servicio adicional.
 
 ### Dos flujos de trabajo — no confundir
 
-| | Flujo A — Construcción/catálogo | Flujo B — Alta de cliente |
+| | Flujo A — Construcción de la página | Flujo B — Alta de cliente |
 |---|---|---|
-| **Dónde** | Antigravity o Claude Code, instalados en el computador, trabajando directo sobre archivos del proyecto | Panel administrador, en el navegador |
-| **Cuándo** | Ocasional — al crear una plantilla nueva, agregar GSAP (Nivel 2), construir el visor 3D (Nivel 3), o hacer un proyecto de código a medida | Constante — cada vez que entra un cliente real |
-| **Qué produce** | Código nuevo, se sube al repo y se despliega en Vercel | Un registro nuevo en Supabase (`tenants` + `tenant_content`) |
+| **Dónde** | Claude Code (agente `template-builder` u otro), trabajando directo sobre archivos del proyecto | Panel administrador, en el navegador |
+| **Cuándo** | Siempre que entra un negocio nuevo — no hay atajo sin código, cada página es de código a medida | Siempre que entra un cliente real, junto con el Flujo A (no en su lugar) |
+| **Qué produce** | El componente de la página (`src/custom/{slug}/`), se sube al repo y se despliega en Vercel | Un registro nuevo en Supabase (`tenants` + `tenant_content`) con el contenido real del negocio |
 | **Requiere tocar código** | Sí | No |
 
-**La conexión entre ambos:** el Flujo A construye la capacidad una sola vez (ej. el visor 3D dentro de una plantilla); el Flujo B la reutiliza infinitas veces sin código. El cliente #47 que compra Nivel 3 no necesita que se abra un editor — solo sube sus fotos por el panel, y el sistema ya sabe mostrarlas porque esa capacidad ya existe. La única excepción real es `custom_code`, donde cada cliente sí pasa por el Flujo A completo, por definición.
+**Estado (2026-08-13):** desde el reset del catálogo (arriba), **Flujo A ya no es ocasional** — es parte obligatoria de dar de alta cualquier negocio nuevo, porque no queda ninguna capacidad ya construida que un Flujo B solo pueda reutilizar sin código (esa era la promesa del sistema de plantillas, y es justo lo que se descartó). El motor compartido (`src/engine/`) sí se reutiliza como herramienta dentro de cada Flujo A, pero no reemplaza la necesidad de escribir el componente de cada página.
 
 ### Panel administrador (interno, Paul) — dos paneles distintos, no confundir
 
@@ -214,7 +217,7 @@ Upsell natural: dominio propio como servicio adicional.
 | Función | Detalle |
 |---|---|
 | Dashboard de clientes | Lista de tenants: nombre, plan, nivel, estado, tipo de dominio — con búsqueda y filtros |
-| Crear cliente nuevo | Nombre, slug, WhatsApp, dirección, horario, plan, nivel (1/2/3), plantilla del catálogo. **Paso de confirmación obligatorio:** el formulario muestra en vivo la URL resultante (`elnombre.sitioya.com`) a partir del slug, valida que no esté repetido, y pide confirmar explícitamente que el nombre del negocio y el subdominio están bien escritos antes de guardar — cambiarlo después de publicado rompe enlaces ya compartidos y SEO |
+| Crear cliente nuevo | Nombre, slug, WhatsApp, dirección, horario, nivel (1/2/3) — sin selector de plantilla, todo tenant nuevo nace `plan="custom_code"` (`src/app/admin/(protected)/nuevo/_components/FormularioNuevoTenant.tsx`). **Paso de confirmación obligatorio:** el formulario muestra en vivo la URL resultante (`elnombre.sitioya.com`) a partir del slug, valida que no esté repetido, y pide confirmar explícitamente que el nombre del negocio y el subdominio están bien escritos antes de guardar — cambiarlo después de publicado rompe enlaces ya compartidos y SEO |
 | Carga inicial de contenido | Precios, productos, textos, fotos — y para Nivel 3, subir fotos del producto para generar el modelo 3D |
 | Vista previa antes de publicar | Estado `borrador` hasta revisión |
 | Gestión de dominio | Tipo de dominio y registro de dominio custom si aplica |
@@ -257,28 +260,32 @@ Login por tenant → formulario (precios, textos, horarios, WhatsApp, fotos) →
 ## 8. Roadmap de construcción
 
 1. **Esquema Supabase completo** — tablas `tenants` (con `nivel`, dominio, `estado_landing`, `seles_tenant_id`), `tenant_content`, `admins`, RLS.
-2. **Primera plantilla del catálogo (Nivel 1)** — convertir El Establo en `plantilla_carniceria_pizarra`.
+2. ~~**Primera plantilla del catálogo (Nivel 1)** — convertir El Establo en `plantilla_carniceria_pizarra`.~~ Hecho en su momento, luego borrado en el reset del catálogo (sección 5) — El Establo hoy no tiene página (su tenant se eliminó el 2026-08-13).
 3. **Ruteo Fase 1 (path-based)** — funcional en `sitioya.vercel.app/negocio`.
 4. **Panel administrador** — dashboard, crear cliente, carga inicial, vista previa, publicar.
 5. **Panel de autoedición (cliente)**.
-6. **Nivel 2 / PRO** — ✅ implementado para `plantilla_carniceria_pizarra` (2026-08-11): ScrollReveal + Parallax vía GSAP. Falta extender la capa de animación (ProductHover, TextAnimation, PageTransition) e integrarla a futuras plantillas del catálogo.
-7. **Nivel 3 / EXPERIENCE** — ✅ `ProductVisual` implementado para `plantilla_carniceria_pizarra` (2026-08-11): flotación + sombra + glow + tilt por mouse con fotos reales, sin modelo 3D real ni `<model-viewer>`. Falta `Particles`/`Lighting` e integrarlo a futuras plantillas.
+6. **Nivel 2 / PRO** — ✅ `ScrollReveal` + `Parallax` vía GSAP, ahora en `src/engine/`, reutilizados por cualquier página de código a medida que los necesite (`trazojoyas`, `deluxtravel`). Falta extender la capa de animación (ProductHover, TextAnimation, PageTransition) como módulos genéricos del motor.
+7. **Nivel 3 / EXPERIENCE** — ✅ `ProductVisual` implementado en `src/engine/`: flotación + sombra + glow + tilt por mouse con fotos reales, sin modelo 3D real ni `<model-viewer>`. Falta `Particles`/`Lighting`.
 8. **(Futuro) Fase 2** — dominio propio de la plataforma + subdominios wildcard.
 9. **(Futuro) Fase 3** — dominio propio por cliente.
 10. **(Futuro, exploratorio) Integración Seles.**
-11. **(Futuro) Plantillas adicionales** al catálogo.
-12. **vitrina-demo:** experimento comparativo construido 100% con componentes de 21st MCP, pendiente de revisión para decidir qué adoptar en las plantillas de producción.
+11. ~~**(Futuro) Plantillas adicionales al catálogo.**~~ Cancelado — reset del catálogo, 2026-08-12 (sección 5). No se van a construir más plantillas reutilizables; cada negocio nuevo es código a medida.
+12. **vitrina-demo (Barro Andino):** era el experimento comparativo con componentes de 21st MCP — el tenant se borró en la limpieza del 2026-08-13 (nunca se decidió adoptar nada de ahí para "plantillas de producción", que ya no existen como concepto).
 
 ---
 
 ## 9. Próximos pasos inmediatos
 
-- [ ] Confirmar nombre de marca
-- [ ] Crear proyecto Next.js + proyecto Supabase nuevo
-- [ ] Paso 1 del roadmap: esquema Supabase completo
-- [ ] Paso 2: convertir El Establo en la primera plantilla parametrizada (Nivel 1)
-- [ ] Definir 2-3 negocios reales candidatos para los primeros clientes de prueba
-- [ ] Decidir qué negocio candidato sería el primer caso de Nivel 3 (idealmente algo con producto físico simple: sombrero, joya, pieza de cuero)
+Lista original de bootstrap (nombre de marca, crear proyectos, esquema Supabase, primera plantilla) — todo completado hace rato, dejó de ser "próximo" y se retiró de acá. Estado real al 2026-08-13:
+
+- [x] Proyecto Next.js + Supabase real conectados, en producción en Vercel (`26st.vercel.app`), repo en GitHub
+- [x] Panel administrador y de autoedición funcionando
+- [x] Reset del catálogo de plantillas — código a medida como único camino (sección 5)
+- [x] Dos páginas reales en `custom_code`: `trazojoyas` (demo, borrador) y `deluxtravel` (publicado)
+- [ ] Reconstruir (si se decide) los negocios reales que quedaron sin página tras el reset y la limpieza posterior — hoy ninguno tiene página propia: El Establo, Panadería Doña Carmela, Café Altura, Toquilla Andina, Fuego Callejero, Barro Andino, Toy Land
+- [ ] Publicar `trazojoyas` cuando tenga una foto destacada real (hoy usa fotos de muestra Unsplash, bloqueado por ser Nivel 3)
+- [ ] Confirmar nombre de marca definitivo (sigue "tentativo" en el encabezado del documento)
+- [ ] Fase 2 (dominio propio + subdominios wildcard) cuando haya clientes reales que lo justifiquen
 
 ---
 
@@ -288,4 +295,4 @@ Login por tenant → formulario (precios, textos, horarios, WhatsApp, fotos) →
 - **Horario:** Lun-Vie 8am-8pm, Sáb 8am-9pm, Dom 8am-6pm
 - **Diferenciador:** precio y variedad, cambia a diario · canal de pedidos: WhatsApp
 - **Concepto visual:** "pizarra de precios" — paleta oxblood/carbón/latón, tipografía Oswald + Karla + Space Mono
-- **Archivo:** `el-establo-carnicos-demo.html` — base de `plantilla_carniceria_pizarra` (Nivel 1)
+- **Estado:** su página (`plantilla_carniceria_pizarra`, Nivel 1) se borró en el reset del catálogo y el tenant se eliminó en la limpieza del 2026-08-13 — El Establo no tiene página hoy. Esta sección queda como referencia del negocio real, no como código vigente.

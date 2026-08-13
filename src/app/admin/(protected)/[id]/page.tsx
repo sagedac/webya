@@ -6,7 +6,7 @@ import { EditorContenido } from "@/app/admin/(protected)/[id]/_components/Editor
 import { EstadoLandingForm } from "@/app/admin/(protected)/[id]/_components/EstadoLandingForm";
 import { FormularioDominio } from "@/app/admin/(protected)/[id]/_components/FormularioDominio";
 import { GestionAcceso } from "@/app/admin/(protected)/[id]/_components/GestionAcceso";
-import { NIVEL_LABELS } from "@/lib/catalogo-plantillas";
+import { NIVEL_LABELS } from "@/lib/niveles";
 
 function Card({ title, children }: { title: string; children: React.ReactNode }) {
   return (

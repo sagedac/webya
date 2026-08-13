@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
-import { ScrollReveal } from "@/templates/engine/ScrollReveal";
+import { ScrollReveal } from "@/engine/ScrollReveal";
 import type { CategoriaProducto, Foto } from "@/lib/types";
 
 export interface PiezasListProps {

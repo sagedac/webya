@@ -6,7 +6,6 @@ import { EditorContenido } from "@/app/admin/(protected)/[id]/_components/Editor
 import { EstadoLandingForm } from "@/app/admin/(protected)/[id]/_components/EstadoLandingForm";
 import { FormularioDominio } from "@/app/admin/(protected)/[id]/_components/FormularioDominio";
 import { GestionAcceso } from "@/app/admin/(protected)/[id]/_components/GestionAcceso";
-import { NIVEL_LABELS } from "@/lib/niveles";
 
 function Card({ title, children }: { title: string; children: React.ReactNode }) {
   return (
@@ -34,7 +33,6 @@ export default async function TenantDetailPage({ params }: PageProps<"/admin/[id
         <h1 className="text-2xl font-semibold tracking-tight">{tenant.nombre}</h1>
         <p className="mt-1 text-sm text-zinc-500">
           /{tenant.slug} · {tenant.plan}
-          {tenant.nivel ? ` · ${NIVEL_LABELS[tenant.nivel]}` : ""}
           {tenant.plantillaId ? ` · ${tenant.plantillaId}` : ""}
         </p>
       </div>
@@ -67,7 +65,7 @@ export default async function TenantDetailPage({ params }: PageProps<"/admin/[id
       </Card>
 
       <Card title="Contenido">
-        <EditorContenido tenantId={tenant.id} content={content} nivel={tenant.nivel} />
+        <EditorContenido tenantId={tenant.id} content={content} />
       </Card>
 
       <Card title="Dominio">

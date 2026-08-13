@@ -238,11 +238,13 @@ export async function actualizarContenidoAction(_prevState: AccionState, formDat
   return { error: null };
 }
 
-// Nivel 3/EXPERIENCE promete la sección ProductVisual (webya.md sección 2)
-// como parte garantizada del nivel, no condicional — así que no puede
-// publicarse sin la foto que la alimenta. Se bloquea acá, en el único
-// lugar que cambia estado_landing, en vez de confiar en que el admin se
-// acuerde de cargarla antes de publicar.
+// La sección ProductVisual (webya.md sección 2) es parte garantizada de
+// toda página nueva desde que se retiraron los 3 niveles de precio
+// (sección 2, "fin de los 3 niveles de precio") — ya no depende de qué
+// nivel tenga el tenant, aplica siempre. No puede publicarse sin la foto
+// que la alimenta. Se bloquea acá, en el único lugar que cambia
+// estado_landing, en vez de confiar en que el admin se acuerde de
+// cargarla antes de publicar.
 export async function actualizarEstadoAction(_prevState: AccionState, formData: FormData): Promise<AccionState> {
   const tenantId = String(formData.get("tenantId") ?? "");
   const estado = String(formData.get("estado") ?? "") as EstadoLanding;
@@ -250,10 +252,9 @@ export async function actualizarEstadoAction(_prevState: AccionState, formData: 
   if (estado === "publicado") {
     const data = await getTenantById(tenantId);
     if (!data) return { error: "Tenant no encontrado." };
-    if (data.tenant.nivel === 3 && !data.content.fotoDestacada) {
+    if (!data.content.fotoDestacada) {
       return {
-        error:
-          "Este tenant es Nivel 3/EXPERIENCE pero no tiene foto de producto destacado cargada — es obligatoria para publicar en este nivel. Agrégala en \"Contenido\" antes de publicar.",
+        error: "Este tenant no tiene foto de producto destacado cargada — es obligatoria para publicar. Agrégala en \"Contenido\" antes de publicar.",
       };
     }
   }

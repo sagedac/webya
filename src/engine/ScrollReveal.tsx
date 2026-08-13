@@ -18,8 +18,7 @@ export interface ScrollRevealProps {
   className?: string;
 }
 
-// Nivel 2/PRO en adelante (webya.md sección 2): fade + slide-in (y opcional
-// scale-in) al entrar en viewport. El estado oculto inicial se fija solo
+// Fade + slide-in (y opcional scale-in) al entrar en viewport. El estado oculto inicial se fija solo
 // vía gsap.set() dentro del efecto, nunca como clase en el JSX — así el
 // HTML servido por Next siempre muestra el contenido visible, con o sin
 // JS. La animación es una mejora progresiva, no una condición para ver el

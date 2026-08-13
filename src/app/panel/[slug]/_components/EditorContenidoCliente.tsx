@@ -2,19 +2,11 @@
 
 import { useActionState, useState } from "react";
 import { actualizarContenidoClienteAction } from "@/app/panel/actions";
-import { FORMAS_PAGO_DISPONIBLES, type CategoriaProducto, type FaqItem, type FormaPago, type Foto, type HorarioDia, type Nivel, type Pilar, type TenantContent } from "@/lib/types";
+import { FORMAS_PAGO_DISPONIBLES, type CategoriaProducto, type FaqItem, type FormaPago, type Foto, type HorarioDia, type Pilar, type TenantContent } from "@/lib/types";
 
 const ESTADO_INICIAL = { error: null };
 
-export function EditorContenidoCliente({
-  slug,
-  content,
-  nivel,
-}: {
-  slug: string;
-  content: TenantContent;
-  nivel: Nivel | null;
-}) {
+export function EditorContenidoCliente({ slug, content }: { slug: string; content: TenantContent }) {
   const [state, formAction, isPending] = useActionState(actualizarContenidoClienteAction, ESTADO_INICIAL);
 
   const [tagline, setTagline] = useState(content.textos.tagline);
@@ -40,7 +32,7 @@ export function EditorContenidoCliente({
       <input type="hidden" name="horariosJson" value={JSON.stringify(horarios)} />
       <input type="hidden" name="categoriasJson" value={JSON.stringify(categorias)} />
       <input type="hidden" name="fotosJson" value={JSON.stringify(fotos)} />
-      {nivel === 3 && <input type="hidden" name="fotoDestacadaJson" value={JSON.stringify(fotoDestacada)} />}
+      <input type="hidden" name="fotoDestacadaJson" value={JSON.stringify(fotoDestacada)} />
       <input type="hidden" name="pilaresJson" value={JSON.stringify(pilares)} />
       <input type="hidden" name="pasosJson" value={JSON.stringify(pasos)} />
       <input type="hidden" name="formasPagoJson" value={JSON.stringify(formasPago)} />
@@ -158,29 +150,27 @@ export function EditorContenidoCliente({
         </div>
       </div>
 
-      {nivel === 3 && (
-        <div>
-          <label className="mb-2 block text-sm font-medium">Foto de producto destacado (EXPERIENCE)</label>
-          <p className="mb-2 text-xs text-zinc-500">
-            La foto que &ldquo;flota&rdquo; en la sección de efecto visual de tu landing. Mejor resultado con fondo
-            limpio o transparente.
-          </p>
-          <div className="flex gap-2">
-            <input
-              value={fotoDestacada.url}
-              onChange={(e) => setFotoDestacada((prev) => ({ ...prev, url: e.target.value }))}
-              placeholder="https://..."
-              className="flex-1 rounded-md border border-zinc-300 px-3 py-1.5 text-sm dark:border-zinc-700 dark:bg-zinc-900"
-            />
-            <input
-              value={fotoDestacada.alt}
-              onChange={(e) => setFotoDestacada((prev) => ({ ...prev, alt: e.target.value }))}
-              placeholder="Descripción"
-              className="w-1/3 rounded-md border border-zinc-300 px-3 py-1.5 text-sm dark:border-zinc-700 dark:bg-zinc-900"
-            />
-          </div>
+      <div>
+        <label className="mb-2 block text-sm font-medium">Foto de producto destacado</label>
+        <p className="mb-2 text-xs text-zinc-500">
+          La foto que &ldquo;flota&rdquo; en la sección de efecto visual de tu landing. Mejor resultado con fondo
+          limpio o transparente.
+        </p>
+        <div className="flex gap-2">
+          <input
+            value={fotoDestacada.url}
+            onChange={(e) => setFotoDestacada((prev) => ({ ...prev, url: e.target.value }))}
+            placeholder="https://..."
+            className="flex-1 rounded-md border border-zinc-300 px-3 py-1.5 text-sm dark:border-zinc-700 dark:bg-zinc-900"
+          />
+          <input
+            value={fotoDestacada.alt}
+            onChange={(e) => setFotoDestacada((prev) => ({ ...prev, alt: e.target.value }))}
+            placeholder="Descripción"
+            className="w-1/3 rounded-md border border-zinc-300 px-3 py-1.5 text-sm dark:border-zinc-700 dark:bg-zinc-900"
+          />
         </div>
-      )}
+      </div>
 
       <div>
         <label className="mb-2 block text-sm font-medium">Fotos</label>

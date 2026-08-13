@@ -14,9 +14,9 @@ const ESTADOS: { value: EstadoLanding; label: string; icon: typeof FileEdit }[] 
 const ESTADO_INICIAL: AccionState = { error: null };
 
 // Componente cliente (antes eran 3 <form> independientes en la página de
-// servidor) porque intentar publicar un Nivel 3 sin foto destacada
-// necesita mostrar un error sin recargar la página — actualizarEstadoAction
-// ahora devuelve {error}, así que hace falta useActionState para leerlo.
+// servidor) porque intentar publicar sin foto destacada necesita mostrar
+// un error sin recargar la página — actualizarEstadoAction ahora devuelve
+// {error}, así que hace falta useActionState para leerlo.
 export function EstadoLandingForm({ tenantId, estadoActual }: { tenantId: string; estadoActual: EstadoLanding }) {
   const [state, formAction, isPending] = useActionState(actualizarEstadoAction, ESTADO_INICIAL);
 

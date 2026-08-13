@@ -255,8 +255,8 @@ export function CountUp({ to, suffix = "", duration = 1.8, className }: { to: nu
 // deliberadamente distinta a todo lo demás en la página (todo lo demás
 // reacciona a scroll; esto reacciona al reloj, como una vitrina que sigue
 // "viva" aunque el usuario deje de scrollear). Reutiliza la keyframe
-// .animate-fade-in-up ya definida en globals.css (Nivel 1/START) en vez de
-// escribir una nueva animación CSS o sumar GSAP — remontar el nodo vía
+// .animate-fade-in-up ya definida en globals.css en vez de escribir una
+// nueva animación CSS o sumar GSAP — remontar el nodo vía
 // `key` la vuelve a disparar en cada cambio, sin JS de animación extra.
 export function TestimonialCycle({ testimonios, acento }: { testimonios: Testimonio[]; acento: string }) {
   const [index, setIndex] = useState(0);

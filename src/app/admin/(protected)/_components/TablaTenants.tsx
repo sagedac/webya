@@ -3,7 +3,6 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { Search, ChevronRight, Inbox } from "lucide-react";
-import { NIVEL_LABELS } from "@/lib/niveles";
 import type { TenantWithContent } from "@/lib/types";
 
 const ESTADO_ESTILO: Record<string, string> = {
@@ -89,7 +88,6 @@ export function TablaTenants({ tenants }: { tenants: TenantWithContent[] }) {
                   <p className="truncate text-sm font-medium text-zinc-900 dark:text-zinc-100">{tenant.nombre}</p>
                   <p className="truncate text-xs text-zinc-500">
                     /{tenant.slug} · {tenant.plan}
-                    {tenant.nivel ? ` · ${NIVEL_LABELS[tenant.nivel]}` : ""}
                   </p>
                 </div>
 

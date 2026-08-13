@@ -20,12 +20,11 @@ const STAGE_SIZE_CLASSES: Record<"lg" | "md", string> = {
   md: "w-56 sm:w-64 lg:w-72",
 };
 
-// Nivel 3/EXPERIENCE (webya.md sección 2): sensación de producto flotando
-// con fotos reales, sin modelo 3D — parallax de scroll + flotación idle +
-// sombra/pedestal + glow ambiental con el color de acento de la marca +
-// tilt y escala al pasar el mouse. Genérico a propósito: no asume rubro,
-// cualquier plantilla puede usarlo con cualquier foto de producto con
-// fondo limpio/aislado.
+// Sensación de producto flotando con fotos reales, sin modelo 3D —
+// parallax de scroll + flotación idle + sombra/pedestal + glow ambiental
+// con el color de acento de la marca + tilt y escala al pasar el mouse.
+// Genérico a propósito: no asume rubro, cualquier página puede usarlo con
+// cualquier foto de producto con fondo limpio/aislado.
 //
 // Terreno preparado para 3D real: `stageRef` de abajo es el "escenario"
 // (contenedor de dimensiones fijas) que el día de mañana recibiría un

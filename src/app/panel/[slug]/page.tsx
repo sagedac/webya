@@ -38,7 +38,7 @@ export default async function PanelClientePage({ params }: PageProps<"/panel/[sl
           </form>
         </div>
       </div>
-      <EditorContenidoCliente slug={tenant.slug} content={content} nivel={tenant.nivel} />
+      <EditorContenidoCliente slug={tenant.slug} content={content} />
     </div>
   );
 }

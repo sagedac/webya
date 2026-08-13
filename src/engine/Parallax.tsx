@@ -11,9 +11,9 @@ export interface ParallaxProps {
   className?: string;
 }
 
-// Nivel 2/PRO en adelante: desplazamiento continuo atado al scroll (no hay
-// estado inicial que ocultar, así que no hay riesgo de FOUC como en
-// ScrollReveal — el valor de reposo ya es 0).
+// Desplazamiento continuo atado al scroll (no hay estado inicial que
+// ocultar, así que no hay riesgo de FOUC como en ScrollReveal — el valor
+// de reposo ya es 0).
 export function Parallax({ children, speed = 0.3, className }: ParallaxProps) {
   const ref = useRef<HTMLDivElement>(null);
 

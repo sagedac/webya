@@ -25,8 +25,8 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
-/* Entrada CSS pura para Nivel 1/START (webya.md sección 2): fade + slide al
-   cargar, sin GSAP/ScrollTrigger, para mantener ese nivel liviano. */
+/* Entrada CSS pura: fade + slide al cargar, sin GSAP/ScrollTrigger, para
+   casos donde no hace falta animación atada al scroll. */
 @theme {
   --animate-fade-in-up: fade-in-up 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
 }

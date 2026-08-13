@@ -13,7 +13,6 @@ import {
   type FormaPago,
   type Foto,
   type HorarioDia,
-  type Nivel,
   type Pilar,
   type Rubro,
   type TenantContent,
@@ -21,15 +20,7 @@ import {
 
 const ESTADO_INICIAL = { error: null };
 
-export function EditorContenido({
-  tenantId,
-  content,
-  nivel,
-}: {
-  tenantId: string;
-  content: TenantContent;
-  nivel: Nivel | null;
-}) {
+export function EditorContenido({ tenantId, content }: { tenantId: string; content: TenantContent }) {
   const [state, formAction, isPending] = useActionState(actualizarContenidoAction, ESTADO_INICIAL);
 
   const [tagline, setTagline] = useState(content.textos.tagline);
@@ -57,7 +48,7 @@ export function EditorContenido({
       <input type="hidden" name="tenantId" value={tenantId} />
       <input type="hidden" name="horariosJson" value={JSON.stringify(horarios)} />
       <input type="hidden" name="categoriasJson" value={JSON.stringify(categorias)} />
-      {nivel === 3 && <input type="hidden" name="fotoDestacadaJson" value={JSON.stringify(fotoDestacada)} />}
+      <input type="hidden" name="fotoDestacadaJson" value={JSON.stringify(fotoDestacada)} />
       <input type="hidden" name="pilaresJson" value={JSON.stringify(pilares)} />
       <input type="hidden" name="pasosJson" value={JSON.stringify(pasos)} />
       <input type="hidden" name="formasPagoJson" value={JSON.stringify(formasPago)} />
@@ -80,33 +71,31 @@ export function EditorContenido({
         <input name="precioNota" value={precioNota} onChange={(e) => setPrecioNota(e.target.value)} className={inputClass} />
       </div>
 
-      {nivel === 3 && (
-        <div>
-          <label className={`${labelClass} mb-2`}>Foto de producto destacado (EXPERIENCE)</label>
-          <p className="mb-2 text-xs text-zinc-500">
-            La foto que &ldquo;flota&rdquo; en la sección de efecto visual. Mejor resultado con fondo limpio o transparente.
+      <div>
+        <label className={`${labelClass} mb-2`}>Foto de producto destacado</label>
+        <p className="mb-2 text-xs text-zinc-500">
+          La foto que &ldquo;flota&rdquo; en la sección de efecto visual. Mejor resultado con fondo limpio o transparente.
+        </p>
+        {!content.fotoDestacada && (
+          <p className="mb-2 rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-800 dark:bg-amber-950/40 dark:text-amber-200">
+            Obligatoria — sin esta foto no vas a poder publicar este tenant.
           </p>
-          {!content.fotoDestacada && (
-            <p className="mb-2 rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-800 dark:bg-amber-950/40 dark:text-amber-200">
-              Obligatoria en Nivel 3/EXPERIENCE — sin esta foto no vas a poder publicar este tenant.
-            </p>
-          )}
-          <div className="flex gap-2">
-            <input
-              value={fotoDestacada.url}
-              onChange={(e) => setFotoDestacada((prev) => ({ ...prev, url: e.target.value }))}
-              placeholder="https://..."
-              className={`${inputClass} flex-1`}
-            />
-            <input
-              value={fotoDestacada.alt}
-              onChange={(e) => setFotoDestacada((prev) => ({ ...prev, alt: e.target.value }))}
-              placeholder="Descripción"
-              className={`${inputClass} w-1/3`}
-            />
-          </div>
+        )}
+        <div className="flex gap-2">
+          <input
+            value={fotoDestacada.url}
+            onChange={(e) => setFotoDestacada((prev) => ({ ...prev, url: e.target.value }))}
+            placeholder="https://..."
+            className={`${inputClass} flex-1`}
+          />
+          <input
+            value={fotoDestacada.alt}
+            onChange={(e) => setFotoDestacada((prev) => ({ ...prev, alt: e.target.value }))}
+            placeholder="Descripción"
+            className={`${inputClass} w-1/3`}
+          />
         </div>
-      )}
+      </div>
 
       <div>
         <label className={`${labelClass} mb-2`}>Colores de marca</label>

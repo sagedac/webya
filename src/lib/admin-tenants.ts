@@ -86,14 +86,12 @@ export async function getTenantBySlugAdmin(slug: string): Promise<TenantWithCont
 export async function crearTenant(input: CrearTenantInput): Promise<TenantWithContent> {
   // Repite a nivel de aplicación el constraint que ya existe en la
   // migración SQL (tenants_plan_fields_check), para dar feedback inmediato
-  // en el formulario en vez de esperar el error de Postgres. Desde el
-  // reset del catálogo de plantillas (webya.md sección 5, 2026-08-12) el
-  // nivel es obligatorio en los dos planes — antes solo aplicaba a
-  // plan="template", porque determinaba qué capas de una plantilla se
-  // activaban; ahora determina la sofisticación de cualquier página,
-  // incluida la de código a medida.
+  // en el formulario en vez de esperar el error de Postgres. `nivel` sigue
+  // siendo NOT NULL en la base de datos aunque ya no varía (webya.md
+  // sección 2, "fin de los 3 niveles de precio", 2026-08-13) — el
+  // formulario de alta lo fija en 3 sin preguntarlo.
   if (!input.nivel) {
-    throw new Error("El nivel (START/PRO/EXPERIENCE) es obligatorio.");
+    throw new Error("El nivel es obligatorio.");
   }
   if (input.plan === "template" && !input.plantillaId) {
     throw new Error("Un tenant de tipo 'template' requiere una plantilla.");

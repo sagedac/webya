@@ -138,8 +138,8 @@ export interface TenantContent {
   telefonoWhatsapp: string;
   coloresMarca: ColoresMarca;
   fotos: Foto[];
-  // Nivel 3/EXPERIENCE: foto que usa el efecto ProductVisual (webya.md
-  // sección 2). null si el tenant no tiene una asignada todavía.
+  // Foto que usa el efecto ProductVisual (webya.md sección 2), obligatoria
+  // para publicar. null si el tenant no tiene una asignada todavía.
   fotoDestacada: Foto | null;
   // "Por qué elegirnos". Vacío = sección omitida en el render.
   pilares: Pilar[];

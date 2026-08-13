@@ -238,26 +238,19 @@ export async function actualizarContenidoAction(_prevState: AccionState, formDat
   return { error: null };
 }
 
-// La sección ProductVisual (webya.md sección 2) es parte garantizada de
-// toda página nueva desde que se retiraron los 3 niveles de precio
-// (sección 2, "fin de los 3 niveles de precio") — ya no depende de qué
-// nivel tenga el tenant, aplica siempre. No puede publicarse sin la foto
-// que la alimenta. Se bloquea acá, en el único lugar que cambia
-// estado_landing, en vez de confiar en que el admin se acuerde de
-// cargarla antes de publicar.
+// Ya no hay un bloqueo automático de "falta foto_destacada" acá. Existía
+// porque el nivel 3/EXPERIENCE garantizaba una sección ProductVisual en
+// TODA página — pero desde que se retiró la estructura de secciones
+// predeterminada (webya.md sección 2, 2026-08-13) no se puede asumir que
+// una página use ProductVisual solo porque existe: cada página de código
+// a medida decide su propia estructura, y no hay ningún campo que registre
+// "esta página usa ProductVisual" para condicionar el bloqueo
+// correctamente. Revisar manualmente antes de publicar (o durante el Paso
+// 7 del agente que construyó la página) sigue siendo necesario si esa
+// página en particular sí depende de una foto destacada.
 export async function actualizarEstadoAction(_prevState: AccionState, formData: FormData): Promise<AccionState> {
   const tenantId = String(formData.get("tenantId") ?? "");
   const estado = String(formData.get("estado") ?? "") as EstadoLanding;
-
-  if (estado === "publicado") {
-    const data = await getTenantById(tenantId);
-    if (!data) return { error: "Tenant no encontrado." };
-    if (!data.content.fotoDestacada) {
-      return {
-        error: "Este tenant no tiene foto de producto destacado cargada — es obligatoria para publicar. Agrégala en \"Contenido\" antes de publicar.",
-      };
-    }
-  }
 
   await actualizarEstado(tenantId, estado);
   revalidatePath(`/admin/${tenantId}`);

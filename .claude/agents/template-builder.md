@@ -40,22 +40,27 @@ paso 1 cuando hay conflicto:
 - Fotografía real obligatoria (nunca stock genérico ni placeholders
   sin avisar)
 - Anclar el diseño al mundo real del negocio, no plantilla genérica
-- Filas numeradas grandes como firma visual del sistema (mantener en
-  todas las páginas nuevas salvo justificación fuerte para no
-  hacerlo)
+- Un elemento "firma" visual único **por landing** — no un patrón
+  compartido entre páginas. "Filas numeradas grandes" fue la firma de
+  `plantilla_carniceria_pizarra` en su momento; no es un mandato para
+  toda página nueva, es un ejemplo de que cada negocio necesita
+  encontrar el suyo propio (puede ser otra cosa por completo).
 - WhatsApp como CTA principal
-- **Construye siempre al mayor nivel de sofisticación — no hay niveles
-  de precio distintos, ya no esperes a que te lo pidan.** (webya.md
-  sección 2, "fin de los 3 niveles de precio", 2026-08-13): un solo
-  estándar, un solo precio ($100). Tu entregable usa siempre las 3
-  capas del motor compartido (`src/engine/` — `ScrollReveal`,
-  `Parallax`, `ProductVisual`) y los mejores componentes de frontend
-  que encuentres (paso 5), igual que ya hicieron `trazojoyas` y
-  `deluxtravel`. `tenants.nivel` sigue siendo un campo obligatorio en
-  la base de datos (legado, `NOT NULL`) pero ya no varía — se fija en
-  `3` al dar de alta el cliente, sin preguntarlo. Solo construyes menos
-  si el dueño del proyecto pide explícitamente algo más simple/liviano
-  para un caso puntual.
+- **No hay estructura de secciones predeterminada, ni niveles de
+  precio distintos** (webya.md sección 2, "fin de los 3 niveles de
+  precio", 2026-08-13): un solo estándar de calidad, el más alto que
+  el proyecto sabe construir, y la estructura/secciones de cada página
+  son criterio tuyo según lo que ESE negocio necesite — no una lista
+  fija que toda página deba llevar. Tu entregable usa las capas del
+  motor compartido que tengan sentido para este negocio (`src/engine/`
+  — `ScrollReveal`, `Parallax`, `ProductVisual`, ninguna es
+  obligatoria por sí sola, pero la calidad final debe estar a la
+  altura de lo que ya construyeron `trazojoyas` y `deluxtravel`) y los
+  mejores componentes de frontend que encuentres (paso 5).
+  `tenants.nivel` sigue siendo un campo obligatorio en la base de
+  datos (legado de esquema, `NOT NULL`, fijo en `3`) pero no es un
+  concepto de producto — no lo menciones como "Nivel 3/EXPERIENCE" en
+  tu razonamiento ni en el código, es solo un vestigio técnico.
 
 ## Paso 3 — Analizar referencias visuales proporcionadas
 
@@ -69,11 +74,12 @@ paso 1 cuando hay conflicto:
   genéricas de internet para rellenar, por derechos de autor. Dos
   caminos válidos, según el caso:
   1. Marcadores de posición correctamente dimensionados, documentados
-     como tal en el código — el tenant no puede pasar a
-     "publicado" en el panel admin mientras falte una foto que su
-     nivel exija (ej. Nivel 3/EXPERIENCE requiere `foto_destacada`;
-     ya bloqueado en `actualizarEstadoAction`,
-     `src/app/admin/actions.ts`, sin que tengas que tocar nada ahí).
+     como tal en el código — si tu página usa `ProductVisual`, avisa
+     explícitamente en tu reporte (paso 7) que el tenant no debería
+     publicarse sin `foto_destacada` real. No hay bloqueo automático en
+     el panel admin para esto (se quitó cuando dejó de poder asumirse
+     que toda página usa `ProductVisual`, ver `src/app/admin/actions.ts`)
+     — depende de que quede documentado y de revisión manual.
   2. Fotografía de muestra de Unsplash (licencia de uso comercial
      libre, key en `.env.local` como `UNSPLASH_ACCESS_KEY`) como
      contenido ilustrativo/mockup — nunca presentada como "la foto
@@ -134,13 +140,17 @@ proyecto (arquitectura RLS-first: sesión + políticas, no
 
 ## Paso 7 — Reportar
 
-Al terminar, resume: qué reglas de ui-ux-pro-max se usaron, cuáles se
-sobrescribieron por las reglas de marca de WebYa y por qué, qué
-componentes de 21st se adaptaron, qué fotos se usaron (reales,
-placeholder, o Unsplash de muestra con su atribución), y si el tenant
-quedó bloqueado de publicar por falta de alguna foto que su nivel
-exige. Si el negocio introduce algo nuevo que vale la pena que quede
-registrado para el proyecto en general (ej. un `rubro` nuevo en el
-enum de `src/lib/types.ts`, o una técnica de animación nueva en
-`src/engine/`), documéntalo en `webya.md` — pero no agregues esta
-página a ningún catálogo, porque no existe.
+Al terminar, resume: qué estructura/secciones decidiste para esta
+página y por qué (no hay una lista predeterminada que justificar
+contra ella, pero sí vale explicar el criterio), qué reglas de
+ui-ux-pro-max se usaron, cuáles se sobrescribieron por las reglas de
+marca de WebYa y por qué, qué componentes de 21st se adaptaron, qué
+fotos se usaron (reales, placeholder, o Unsplash de muestra con su
+atribución), y si la página usa `ProductVisual` y por lo tanto no
+debería publicarse todavía sin `foto_destacada` real (sección arriba —
+no hay bloqueo automático, avísalo explícitamente). Si el negocio
+introduce algo nuevo que vale la pena que quede registrado para el
+proyecto en general (ej. un `rubro` nuevo en el enum de
+`src/lib/types.ts`, o una técnica de animación nueva en `src/engine/`),
+documéntalo en `webya.md` — pero no agregues esta página a ningún
+catálogo, porque no existe.

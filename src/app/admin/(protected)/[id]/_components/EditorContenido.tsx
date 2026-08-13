@@ -78,7 +78,7 @@ export function EditorContenido({ tenantId, content }: { tenantId: string; conte
         </p>
         {!content.fotoDestacada && (
           <p className="mb-2 rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-800 dark:bg-amber-950/40 dark:text-amber-200">
-            Obligatoria — sin esta foto no vas a poder publicar este tenant.
+            Sin llenar — si esta página usa el efecto de producto flotante, revisa que tenga una foto real antes de publicar (no hay bloqueo automático).
           </p>
         )}
         <div className="flex gap-2">

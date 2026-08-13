@@ -5,10 +5,16 @@ import { Check, ChevronRight, ArrowLeft } from "lucide-react";
 import { crearTenantAction } from "@/app/admin/actions";
 import { slugify } from "@/lib/slug";
 import { inputClass, labelClass, primaryButtonClass, secondaryButtonClass } from "@/lib/form-styles";
-import { NIVEL_LABELS } from "@/lib/niveles";
 import type { HorarioDia, Nivel } from "@/lib/types";
 
 const ESTADO_INICIAL = { error: null };
+
+// Fin de los 3 niveles de precio (webya.md sección 2, 2026-08-13): un solo
+// estándar, siempre construido a la máxima sofisticación — el nivel ya no
+// es una elección comercial, así que no se pregunta en este formulario.
+// El campo sigue siendo NOT NULL en la base de datos (tenants_plan_fields_check),
+// por eso se sigue enviando, fijo en 3.
+const NIVEL_FIJO: Nivel = 3;
 
 function PasoIndicador({ paso }: { paso: "datos" | "confirmar" }) {
   const pasos = [
@@ -51,12 +57,6 @@ export function FormularioNuevoTenant({ slugsExistentes }: { slugsExistentes: st
   const [nombre, setNombre] = useState("");
   const [slug, setSlug] = useState("");
   const [slugTocadoManualmente, setSlugTocadoManualmente] = useState(false);
-  // Reset del catálogo de plantillas (webya.md sección 5, 2026-08-12): ya
-  // no existe plan="template" en el flujo de alta — toda página nueva es
-  // código a medida (src/custom/registro.ts). El nivel (START/PRO/
-  // EXPERIENCE) se mantiene como parte del modelo comercial, ahora
-  // independiente de cualquier plantilla.
-  const [nivel, setNivel] = useState<Nivel>(1);
   const [telefonoWhatsapp, setTelefonoWhatsapp] = useState("");
   const [direccion, setDireccion] = useState("");
   const [horarios, setHorarios] = useState<HorarioDia[]>([
@@ -114,17 +114,6 @@ export function FormularioNuevoTenant({ slugsExistentes }: { slugsExistentes: st
               Página de código a medida — el componente para este slug tiene que existir ya en{" "}
               <code>src/custom/registro.ts</code> antes de publicar, si no la página pública da 404.
             </p>
-          </div>
-
-          <div>
-            <label className={labelClass}>Nivel</label>
-            <select value={nivel} onChange={(e) => setNivel(Number(e.target.value) as Nivel)} className={inputClass}>
-              {([1, 2, 3] as const).map((n) => (
-                <option key={n} value={n}>
-                  {NIVEL_LABELS[n]}
-                </option>
-              ))}
-            </select>
           </div>
 
           <div className="grid gap-5 sm:grid-cols-2">
@@ -189,10 +178,6 @@ export function FormularioNuevoTenant({ slugsExistentes }: { slugsExistentes: st
             <dt className="text-zinc-500">URL futura (Fase 2)</dt>
             <dd className="font-mono text-zinc-400">{urlFutura}</dd>
           </div>
-          <div className="flex justify-between">
-            <dt className="text-zinc-500">Nivel</dt>
-            <dd className="font-medium">{NIVEL_LABELS[nivel]}</dd>
-          </div>
         </dl>
 
         <label className="mt-5 flex items-start gap-2.5 rounded-lg bg-amber-50 p-3 text-sm dark:bg-amber-950/40">
@@ -210,7 +195,7 @@ export function FormularioNuevoTenant({ slugsExistentes }: { slugsExistentes: st
         <input type="hidden" name="nombre" value={nombre} />
         <input type="hidden" name="slug" value={slug} />
         <input type="hidden" name="plan" value="custom_code" />
-        <input type="hidden" name="nivel" value={nivel} />
+        <input type="hidden" name="nivel" value={NIVEL_FIJO} />
         <input type="hidden" name="telefonoWhatsapp" value={telefonoWhatsapp} />
         <input type="hidden" name="direccion" value={direccion} />
         <input type="hidden" name="horariosJson" value={JSON.stringify(horarios.filter((h) => h.horas.trim()))} />

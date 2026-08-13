@@ -44,11 +44,18 @@ paso 1 cuando hay conflicto:
   todas las páginas nuevas salvo justificación fuerte para no
   hacerlo)
 - WhatsApp como CTA principal
-- Estructura de 3 niveles (START/PRO/EXPERIENCE) según lo documentado
-  — el nivel se elige al dar de alta el negocio en el panel admin,
-  independiente de qué código escribas; construye las capas de
-  animación que ese nivel promete (`src/engine/` — ScrollReveal,
-  Parallax, ProductVisual)
+- **Construye siempre al mayor nivel de sofisticación — no hay niveles
+  de precio distintos, ya no esperes a que te lo pidan.** (webya.md
+  sección 2, "fin de los 3 niveles de precio", 2026-08-13): un solo
+  estándar, un solo precio ($100). Tu entregable usa siempre las 3
+  capas del motor compartido (`src/engine/` — `ScrollReveal`,
+  `Parallax`, `ProductVisual`) y los mejores componentes de frontend
+  que encuentres (paso 5), igual que ya hicieron `trazojoyas` y
+  `deluxtravel`. `tenants.nivel` sigue siendo un campo obligatorio en
+  la base de datos (legado, `NOT NULL`) pero ya no varía — se fija en
+  `3` al dar de alta el cliente, sin preguntarlo. Solo construyes menos
+  si el dueño del proyecto pide explícitamente algo más simple/liviano
+  para un caso puntual.
 
 ## Paso 3 — Analizar referencias visuales proporcionadas
 

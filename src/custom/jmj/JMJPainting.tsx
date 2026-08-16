@@ -1,3 +1,6 @@
+"use client";
+
+import { useState } from "react";
 import { Bitter, Work_Sans } from "next/font/google";
 import Image from "next/image";
 import {
@@ -87,37 +90,37 @@ import { Parallax } from "@/engine/Parallax";
 // tenant sí tenía fotos reales de negocio así que solo el destino era
 // Unsplash; acá TODO el set es de muestra). Ping de tracking obligatorio ya
 // disparado a `links.download_location` de cada una durante la
-// construcción. Atribución completa en el footer, en inglés (público
-// angloparlante).
+// construcción. Atribución completa en el footer, en inglés y español
+// (ver nota de idioma abajo). El logo (2026-08-16) sí es real, enviado por
+// el dueño — se resuelve con el mismo helper `foto()` que el resto.
 //
-// Convención de tenant_content para esta página (documentada porque no hay
-// una lista fija de secciones ni de qué significa cada campo):
-// `precios.categorias` se usa como "Services" (nombre = servicio, items =
-// qué incluye ese servicio) — mismo patrón ya usado en TrazoJoyas/Moonvet.
-// `precios.nota` no se usa (este negocio no tiene una nota de precios
-// variables que comunicar — la cotización es siempre gratis y a medida).
-// `pilares`/`pasos`/`faq` con sus fallbacks de siempre (vacío = usa el set
-// por defecto de esta página, documentado más abajo, todo en inglés).
-// `textos.direccion` en este tenant NO es una dirección postal exacta
-// geocodificable — JMJ es un negocio de zona de servicio, sin oficina con
-// vitrina (ver nota de mapa/JSON-LD abajo); se usa como texto libre para
-// describir la zona de servicio ("East Brunswick, NJ & East Central New
-// Jersey"), mostrado en la sección de contacto y el footer, pero esta
-// página deliberadamente NO intenta convertirlo en un embed de Google
-// Maps — un pin geocodificado a partir de una zona de servicio (no una
-// calle) sería impreciso o directamente engañoso (mismo principio que ya
-// usan Moonvet/DeluxTravel de omitir el mapa antes que mostrar uno roto o
-// incorrecto). `horarios` es opcional; si no se carga, la sección de
-// contacto simplemente no muestra un horario en vez de inventar uno.
-//
-// Nota sobre JSON-LD (src/lib/json-ld.ts): ese archivo tenía
-// `addressLocality: "Cuenca"` y `addressCountry: "EC"` hardcodeados —
-// correcto para los tenants ecuatorianos anteriores, pero incorrecto para
-// este (East Brunswick, NJ, EE.UU.). Se corrigió ahí mismo (no en esta
-// página) para dejar de asumir Ecuador: ahora solo completa
-// `streetAddress` con el texto libre que ya existe, sin inventar
-// localidad/país que tenant_content no captura como campos propios. Ver
-// comentario en ese archivo para el detalle.
+// Selector de idioma EN/ES (2026-08-16, pedido explícito de Paul): esta
+// página es "use client" a partir de acá porque el toggle necesita estado
+// de React (useState) — antes era un componente de servidor puro, pero no
+// usa ninguna API exclusiva de servidor (tenant/content ya llegan resueltos
+// como props desde src/app/[slug]/page.tsx), así que convertirla a cliente
+// no cambia nada más. Alcance real del toggle, para que quede documentado:
+//   - Todo el texto fijo de la interfaz (títulos de sección, botones, FAQ
+//     por defecto, servicios/pilares/pasos por defecto) SÍ tiene traducción
+//     completa — vive en código en los diccionarios de abajo (T, y los
+//     *_EN/*_ES de cada sección), igual en espíritu a como ya funcionaban
+//     los `_DEFAULT` (contenido de respaldo cuando el admin no cargó nada
+//     propio), solo que ahora hay dos versiones por idioma en vez de una.
+//   - El tagline y la descripción SÍ tienen contenido real ya cargado por
+//     el admin en tenant_content.textos (no están vacíos, así que no entran
+//     por el camino de "usa el default"). Para esos dos campos se agregó
+//     una traducción "instantánea" (TAGLINE_ES/DESCRIPCION_ES) del texto
+//     que había en inglés al momento de construir esto — es una traducción
+//     fija en código, no una columna nueva en la base de datos (tenant_
+//     content no guarda variantes por idioma, sección 5 de webya.md). Si el
+//     dueño edita el texto en inglés desde el panel admin más adelante, la
+//     versión en español queda desactualizada hasta que alguien la
+//     actualice a mano acá — limitación conocida y aceptada, no un bug.
+//   - Si el admin llega a cargar sus propios servicios/pilares/pasos/FAQ
+//     personalizados (reemplazando los `_DEFAULT`), esos SIGUEN el idioma
+//     en el que el admin los escribió, sin importar el toggle — no hay
+//     traducción automática de contenido arbitrario cargado por el admin,
+//     solo del contenido que ya vivía en código.
 
 const bitter = Bitter({ subsets: ["latin"], weight: ["500", "600", "700"], variable: "--font-bitter" });
 const workSans = Work_Sans({ subsets: ["latin"], weight: ["400", "500", "600"], variable: "--font-work-sans" });
@@ -133,7 +136,12 @@ const workSans = Work_Sans({ subsets: ["latin"], weight: ["400", "500", "600"], 
 const SWATCH_TERRACOTTA = "#C1652F";
 const SWATCH_MADERA = "#8C6239";
 
-const WHATSAPP_MSG_ESTIMATE = "Hi, I'd like to request a free estimate for a project. Here are some photos:";
+type Idioma = "en" | "es";
+
+const WHATSAPP_MSG_ESTIMATE: Record<Idioma, string> = {
+  en: "Hi, I'd like to request a free estimate for a project. Here are some photos:",
+  es: "Hola, quisiera solicitar una cotización gratis para un proyecto. Aquí van algunas fotos:",
+};
 
 // "732-709-6449" -> "17327096449". Antepone el código de país (+1, EE.UU.)
 // cuando el número cargado tiene los 10 dígitos locales típicos de EE.UU. —
@@ -155,7 +163,8 @@ function waHref(telefono: string, mensaje: string): string {
 
 // "7327096449" -> "(732) 709-6449". Si el número no tiene 10 dígitos (dato
 // cargado distinto a lo esperado), se muestra tal cual llegó en vez de
-// arriesgar un formato incorrecto.
+// arriesgar un formato incorrecto. Mismo formato en los dos idiomas — un
+// número de teléfono no se "traduce".
 function formatoTelefono(telefono: string): string {
   const digitos = telefono.replace(/\D/g, "").slice(-10);
   if (digitos.length !== 10) return telefono;
@@ -164,18 +173,28 @@ function formatoTelefono(telefono: string): string {
 
 // Busca la foto real ya cargada en content.fotos por nombre de archivo (el
 // alt queda editable desde el panel admin); si el tenant todavía no cargó
-// ninguna, cae a las 7 fotos de muestra locales (mismo mecanismo que
+// ninguna, cae a las fotos de muestra/logo locales (mismo mecanismo que
 // Moonvet/DeluxTravel).
 function foto(fotos: Foto[], archivo: string, altPorDefecto: string): Foto {
   return fotos.find((f) => f.url.endsWith(archivo)) ?? { url: `/tenants/jmj/${archivo}`, alt: altPorDefecto };
 }
 
+// Íconos de los 9 servicios por defecto, en el MISMO orden que
+// SERVICIOS_DEFAULT_EN/ES de abajo — independiente del idioma, para que
+// traducir el nombre del servicio nunca rompa qué ícono le corresponde
+// (antes se resolvía por palabra clave en inglés dentro del nombre, lo cual
+// se habría roto apenas el nombre estuviera en español).
+const SERVICIOS_ICONOS = [Bath, ChefHat, Warehouse, PaintRoller, Fence, Layers, LayoutGrid, Blocks, Droplets];
+
 // Alcance de cada servicio — ASUNCIÓN razonable del agente constructor a
 // partir del nombre del servicio (el sitio viejo listaba los 9 nombres,
 // sin detalle de qué incluye cada uno), no confirmada palabra por palabra
 // por el dueño. Editable desde el panel admin en cualquier momento sin
-// tocar código (precios.categorias). Ver reporte de construcción.
-const SERVICIOS_DEFAULT: CategoriaProducto[] = [
+// tocar código (precios.categorias) — si el admin carga sus propios
+// servicios, reemplazan a ESTOS dos arrays por completo, en el idioma que
+// el admin haya escrito (ver nota de alcance del toggle más arriba). Ver
+// reporte de construcción original para el detalle de esta asunción.
+const SERVICIOS_DEFAULT_EN: CategoriaProducto[] = [
   { nombre: "Bathroom Remodeling", items: ["Tile, vanities & fixtures", "Full gut renovations", "Lighting & ventilation"] },
   { nombre: "Kitchen Remodeling", items: ["Cabinets & countertops", "Layout changes", "Backsplash & lighting"] },
   { nombre: "Basement Remodeling", items: ["Finished living space", "Framing & drywall", "Flooring & trim"] },
@@ -187,7 +206,41 @@ const SERVICIOS_DEFAULT: CategoriaProducto[] = [
   { nombre: "Power Washing", items: ["Siding & driveways", "Decks & patios", "Pre-paint surface prep"] },
 ];
 
-const PILARES_DEFAULT = [
+const SERVICIOS_DEFAULT_ES: CategoriaProducto[] = [
+  { nombre: "Remodelación de Baños", items: ["Azulejos, tocadores y accesorios", "Renovaciones completas", "Iluminación y ventilación"] },
+  { nombre: "Remodelación de Cocinas", items: ["Gabinetes y encimeras", "Cambios de diseño", "Salpicadero e iluminación"] },
+  { nombre: "Remodelación de Sótanos", items: ["Espacio habitable terminado", "Estructura y paneles de yeso", "Pisos y molduras"] },
+  { nombre: "Pintura", items: ["Interior y exterior", "Restauración de gabinetes", "Preparación limpia y líneas precisas"] },
+  { nombre: "Reparación e Instalación de Decks", items: ["Construcción de decks nuevos", "Reparación de tablas y barandas", "Tinte y sellado"] },
+  { nombre: "Paneles de Yeso (Drywall)", items: ["Instalación y masillado", "Parches y reparaciones", "Acabado listo para pintar"] },
+  { nombre: "Pisos", items: ["Madera y laminado", "Instalación de azulejos", "Reparación de subsuelo"] },
+  { nombre: "Adoquines y Concreto", items: ["Senderos y patios", "Entradas de auto", "Muros de contención"] },
+  { nombre: "Hidrolavado", items: ["Revestimientos y entradas", "Decks y patios", "Preparación de superficies antes de pintar"] },
+];
+
+// Ícono por servicio CARGADO POR EL ADMIN (no uno de los defaults, que usan
+// SERVICIOS_ICONOS por índice — ver arriba) — intenta calzar por palabra
+// clave en inglés dentro del nombre y cae a Hammer si no reconoce ninguna.
+// Limitación conocida y ya existente antes del toggle de idioma: si el
+// admin escribe el nombre del servicio en español, esto no lo va a matchear
+// (las palabras clave son en inglés) y caerá a Hammer — no es una
+// regresión del toggle, es el mismo comportamiento que ya tenía esta
+// función para cualquier texto que no contuviera esas palabras en inglés.
+function iconoServicio(nombre: string) {
+  const n = nombre.toLowerCase();
+  if (n.includes("bath")) return Bath;
+  if (n.includes("kitchen")) return ChefHat;
+  if (n.includes("basement")) return Warehouse;
+  if (n.includes("paint")) return PaintRoller;
+  if (n.includes("deck")) return Fence;
+  if (n.includes("drywall")) return Layers;
+  if (n.includes("floor")) return LayoutGrid;
+  if (n.includes("paver") || n.includes("concrete")) return Blocks;
+  if (n.includes("power wash") || n.includes("pressure wash")) return Droplets;
+  return Hammer;
+}
+
+const PILARES_DEFAULT_EN = [
   {
     titulo: "Years of hands-on experience",
     descripcion: "We've been remodeling and painting homes across central New Jersey for years — we know what a house this age needs, and we don't learn on your job.",
@@ -202,47 +255,129 @@ const PILARES_DEFAULT = [
   },
 ];
 
-const PASOS_DEFAULT = [
+const PILARES_DEFAULT_ES = [
+  {
+    titulo: "Años de experiencia práctica",
+    descripcion: "Llevamos años remodelando y pintando casas en el centro de Nueva Jersey — sabemos lo que necesita una casa de esta edad, y no aprendemos con tu proyecto.",
+  },
+  {
+    titulo: "Atención personalizada",
+    descripcion: "Trabajas directamente con la cuadrilla que hace el trabajo, no con un centro de llamadas. Recorremos el proyecto contigo y respondemos tus preguntas sin rodeos.",
+  },
+  {
+    titulo: "Cotizaciones gratis, sin presión",
+    descripcion: "Llama o escríbenos y vamos a revisar tu proyecto — sin costo, sin compromiso, sin trucos.",
+  },
+];
+
+const PASOS_DEFAULT_EN = [
   "Call or reach out for a free estimate — tell us what you're planning",
   "We walk the job with you and give you a straight, no-pressure quote",
   "We get to work, on schedule, and keep you in the loop until it's done",
 ];
 
-const FAQ_DEFAULT = [
+const PASOS_DEFAULT_ES = [
+  "Llama o escríbenos para una cotización gratis — cuéntanos qué estás planeando",
+  "Recorremos el proyecto contigo y te damos una cotización clara, sin presión",
+  "Nos ponemos a trabajar, a tiempo, y te mantenemos informado hasta terminar",
+];
+
+const FAQ_DEFAULT_EN = [
   { pregunta: "Do you really offer free estimates?", respuesta: "Yes — call us and we'll come take a look at your project at no cost and no obligation. Phone estimates work too for smaller jobs." },
   { pregunta: "What areas do you serve?", respuesta: "We're based in East Brunswick and serve East Central New Jersey. Not sure we cover your town? Just give us a call." },
   { pregunta: "Do you handle both painting and remodeling on the same project?", respuesta: "Yes — a lot of our jobs combine both, like a kitchen remodel that also needs fresh paint and trim. One crew, one point of contact, start to finish." },
   { pregunta: "How far out are you booking?", respuesta: "It depends on the season and the size of the job. Call for a free estimate and we'll give you a realistic timeline for your project." },
 ];
 
-// Atribución obligatoria (webya.md sección 3/7) — fotografía de muestra,
-// ilustrativa, con licencia Unsplash de uso comercial libre. No son fotos
-// de trabajos reales de JMJ (ver footer).
-const CREDITOS_UNSPLASH = [
-  { nombre: "Ali Mkumbwa", perfil: "https://unsplash.com/@mkumbwajr" },
-  { nombre: "Zac Gudakov", perfil: "https://unsplash.com/@zacgudakov" },
-  { nombre: "Clay Banks", perfil: "https://unsplash.com/@claybanks" },
-  { nombre: "Sasun Bughdaryan", perfil: "https://unsplash.com/@sasun1990" },
-  { nombre: "josh A. D.", perfil: "https://unsplash.com/@mista_j" },
-  { nombre: "web seo", perfil: "https://unsplash.com/@webseoweb" },
+const FAQ_DEFAULT_ES = [
+  { pregunta: "¿De verdad ofrecen cotizaciones gratis?", respuesta: "Sí — llámanos y vamos a revisar tu proyecto sin costo ni compromiso. Para trabajos pequeños, también podemos darte una cotización por teléfono." },
+  { pregunta: "¿Qué zonas atienden?", respuesta: "Estamos ubicados en East Brunswick y atendemos el centro-este de Nueva Jersey. ¿No estás seguro si cubrimos tu ciudad? Solo llámanos." },
+  { pregunta: "¿Hacen pintura y remodelación en el mismo proyecto?", respuesta: "Sí — muchos de nuestros trabajos combinan ambas cosas, como una remodelación de cocina que también necesita pintura y molduras nuevas. Una sola cuadrilla, un solo contacto, de principio a fin." },
+  { pregunta: "¿Con cuánta anticipación están agendando?", respuesta: "Depende de la temporada y del tamaño del trabajo. Llama para una cotización gratis y te daremos un tiempo estimado realista para tu proyecto." },
 ];
 
-// Ícono por servicio: intenta calzar por palabra clave del nombre (así el
-// admin puede renombrar/reordenar servicios sin romper el ícono) y cae a
-// Hammer si no reconoce ninguna.
-function iconoServicio(nombre: string) {
-  const n = nombre.toLowerCase();
-  if (n.includes("bath")) return Bath;
-  if (n.includes("kitchen")) return ChefHat;
-  if (n.includes("basement")) return Warehouse;
-  if (n.includes("paint")) return PaintRoller;
-  if (n.includes("deck")) return Fence;
-  if (n.includes("drywall")) return Layers;
-  if (n.includes("floor")) return LayoutGrid;
-  if (n.includes("paver") || n.includes("concrete")) return Blocks;
-  if (n.includes("power wash") || n.includes("pressure wash")) return Droplets;
-  return Hammer;
-}
+// Traducción "instantánea" del contenido real ya cargado en
+// tenant_content.textos (tagline/descripción) — ver nota de alcance del
+// toggle más arriba para el porqué de este patrón y su limitación conocida.
+const TAGLINE_ES = "El Remodelador Líder del Centro de Nueva Jersey";
+const DESCRIPCION_ES =
+  "Como el remodelador líder del centro-este de Nueva Jersey, JMJ Painting & Remodeling está listo para mejorar tu hogar. Años de experiencia, profesionales calificados y trabajo de calidad en cada proyecto — desde una sola habitación hasta una renovación completa.";
+
+// Diccionario de todo el texto fijo de la interfaz (títulos, botones,
+// etiquetas) — la otra mitad del toggle de idioma, junto con los `_EN/_ES`
+// de arriba. `s.callConNumero(tel)` en vez de una plantilla de string
+// directa porque el orden "Llamar al {tel}" vs "Call {tel}" cambia entre
+// idiomas, no solo la palabra.
+const T = {
+  en: {
+    callNow: "Call Now",
+    heroEyebrow: "General Contractor · East Brunswick, NJ",
+    badgeEstimate: "Free estimates",
+    badgePainting: "Painting & full remodeling",
+    badgeArea: "East Central NJ",
+    callConNumero: (tel: string) => `Call ${tel}`,
+    getEstimate: "Get a Free Estimate",
+    heroPhotoBadge: "No. 04 — INTERIOR",
+    servicesEyebrow: "What we do",
+    servicesTitle: "Pick your project",
+    servicesSubtitle: "Nine services, one crew — painting and remodeling under the same roof.",
+    portfolioEyebrow: "The kind of work we do",
+    portfolioTitle: "Kitchens, baths & outdoor spaces",
+    portfolioKitchen: "Kitchen remodeling",
+    portfolioBathroom: "Bathroom remodeling",
+    portfolioDeck: "Deck installation & repair",
+    whyEyebrow: "Why homeowners choose us",
+    howEyebrow: "How it works",
+    howTitle: "From a call to a finished job",
+    estimateEyebrow: "No obligation, no cost",
+    estimateTitle: "Get a Free Estimate",
+    estimateBody: "Tell us about your project and we'll come take a look — call for the fastest answer, or send us a text with a few photos.",
+    textPhotos: "Text us photos",
+    faqEyebrow: "Common questions",
+    faqTitle: "Frequently asked questions",
+    areaEyebrow: "Service area",
+    areaTitle: "We come to you",
+    paymentMethods: "Payment methods: ",
+    footerNotice: (nombre: string) =>
+      `${nombre} doesn't have its own photos loaded yet — the photos on this page are sample images, licensed via Unsplash (free for commercial use), illustrative of remodeling and painting work in general (not actual completed jobs of this business), by `,
+    footerOn: " on ",
+    footerAnd: " and ",
+  },
+  es: {
+    callNow: "Llamar ahora",
+    heroEyebrow: "Contratista General · East Brunswick, NJ",
+    badgeEstimate: "Cotizaciones gratis",
+    badgePainting: "Pintura y remodelación completa",
+    badgeArea: "Centro-Este de NJ",
+    callConNumero: (tel: string) => `Llamar al ${tel}`,
+    getEstimate: "Solicita una Cotización Gratis",
+    heroPhotoBadge: "No. 04 — INTERIOR",
+    servicesEyebrow: "Qué hacemos",
+    servicesTitle: "Elige tu proyecto",
+    servicesSubtitle: "Nueve servicios, una sola cuadrilla — pintura y remodelación bajo un mismo techo.",
+    portfolioEyebrow: "El tipo de trabajo que hacemos",
+    portfolioTitle: "Cocinas, baños y espacios exteriores",
+    portfolioKitchen: "Remodelación de cocina",
+    portfolioBathroom: "Remodelación de baño",
+    portfolioDeck: "Instalación y reparación de deck",
+    whyEyebrow: "Por qué los dueños de casa nos eligen",
+    howEyebrow: "Cómo funciona",
+    howTitle: "De una llamada a un trabajo terminado",
+    estimateEyebrow: "Sin compromiso, sin costo",
+    estimateTitle: "Solicita una Cotización Gratis",
+    estimateBody: "Cuéntanos sobre tu proyecto y vamos a revisarlo — llama para la respuesta más rápida, o envíanos un mensaje de texto con algunas fotos.",
+    textPhotos: "Envíanos fotos por texto",
+    faqEyebrow: "Preguntas comunes",
+    faqTitle: "Preguntas frecuentes",
+    areaEyebrow: "Zona de servicio",
+    areaTitle: "Vamos hasta ti",
+    paymentMethods: "Formas de pago: ",
+    footerNotice: (nombre: string) =>
+      `${nombre} todavía no tiene fotos propias cargadas — las fotos de esta página son imágenes de muestra, con licencia de Unsplash (uso comercial gratuito), ilustrativas de trabajos de remodelación y pintura en general (no son trabajos reales terminados de este negocio), por `,
+    footerOn: " en ",
+    footerAnd: " y ",
+  },
+} as const satisfies Record<Idioma, Record<string, string | ((arg: string) => string)>>;
 
 // Divisor "cinta métrica" — marcas de pulgada en SVG, la firma visual de
 // esta página extendida a los separadores de sección (webya.md sección 7:
@@ -315,6 +450,34 @@ function TextCTA({ href, children }: { href: string; children: React.ReactNode }
   );
 }
 
+// Toggle EN/ES — dos botones tipo pastilla, el idioma activo resaltado con
+// el color de acento del tenant. Deliberadamente texto ("EN"/"ES"), no un
+// ícono de globo/idioma: para el público de esta página (dueños de casa
+// buscando un contratista) es más inmediato que un ícono ambiguo.
+function LanguageToggle({ lang, onChange }: { lang: Idioma; onChange: (l: Idioma) => void }) {
+  return (
+    <div className="flex items-center overflow-hidden rounded-lg border" style={{ borderColor: "var(--tenant-acento)" }}>
+      {(["en", "es"] as const).map((l) => (
+        <button
+          key={l}
+          type="button"
+          onClick={() => onChange(l)}
+          aria-pressed={lang === l}
+          aria-label={l === "en" ? "Switch to English" : "Cambiar a español"}
+          className="px-2.5 py-1.5 text-xs font-semibold tracking-wide transition sm:px-3"
+          style={
+            lang === l
+              ? { backgroundColor: "var(--tenant-acento)", color: "#fff" }
+              : { color: "var(--tenant-acento)" }
+          }
+        >
+          {l.toUpperCase()}
+        </button>
+      ))}
+    </div>
+  );
+}
+
 // Tarjeta "muestra de pintura" — la firma visual de esta página (ver nota
 // arriba). Bloque de color sólido con el ícono del servicio + un "código de
 // muestra" arriba (No. 01, 02...), nombre y alcance del servicio abajo,
@@ -362,14 +525,18 @@ function MuestraServicio({
 }
 
 export function JMJPainting({ tenant, content }: TenantWithContent) {
+  const [lang, setLang] = useState<Idioma>("en");
+  const s = T[lang];
+
   const acento = content.coloresMarca.acento;
   const fondo = content.coloresMarca.fondo;
   const texto = content.coloresMarca.texto;
 
-  const servicios = content.precios.categorias.length > 0 ? content.precios.categorias : SERVICIOS_DEFAULT;
-  const pilares = content.pilares.length > 0 ? content.pilares : PILARES_DEFAULT;
-  const pasos = content.pasos.length > 0 ? content.pasos : PASOS_DEFAULT;
-  const faq = content.faq.length > 0 ? content.faq : FAQ_DEFAULT;
+  const usaServiciosDefault = content.precios.categorias.length === 0;
+  const servicios = usaServiciosDefault ? (lang === "es" ? SERVICIOS_DEFAULT_ES : SERVICIOS_DEFAULT_EN) : content.precios.categorias;
+  const pilares = content.pilares.length > 0 ? content.pilares : lang === "es" ? PILARES_DEFAULT_ES : PILARES_DEFAULT_EN;
+  const pasos = content.pasos.length > 0 ? content.pasos : lang === "es" ? PASOS_DEFAULT_ES : PASOS_DEFAULT_EN;
+  const faq = content.faq.length > 0 ? content.faq : lang === "es" ? FAQ_DEFAULT_ES : FAQ_DEFAULT_EN;
 
   const telefono = content.telefonoWhatsapp;
   const telHrefPrincipal = telHref(telefono);
@@ -396,16 +563,15 @@ export function JMJPainting({ tenant, content }: TenantWithContent) {
       style={{ ["--tenant-acento" as string]: acento, backgroundColor: fondo, color: texto }}
       className={`${bitter.variable} ${workSans.variable} min-h-screen font-sans`}
     >
-      {/* Header — logo real del negocio (2026-08-16, reemplaza el ícono
-          genérico + wordmark que se usaba mientras no había logo). El
-          logo se resuelve con el mismo helper `foto()` que el resto de
-          fotos: si el admin llega a subir otro archivo con este nombre
-          desde el panel, lo reemplaza sin tocar código. */}
-      <header className="fixed inset-x-0 top-0 z-40 flex items-center justify-between px-6 py-4 backdrop-blur-[2px] sm:px-10" style={{ backgroundColor: `${fondo}e6` }}>
+      {/* Header — logo real del negocio + toggle de idioma + CTA. */}
+      <header className="fixed inset-x-0 top-0 z-40 flex items-center justify-between gap-3 px-6 py-4 backdrop-blur-[2px] sm:px-10" style={{ backgroundColor: `${fondo}e6` }}>
         <Image src={logo.url} alt={logo.alt} width={160} height={48} className="h-9 w-auto sm:h-10" priority />
-        <CallCTA href={telHrefPrincipal} size="sm">
-          Call Now
-        </CallCTA>
+        <div className="flex items-center gap-2 sm:gap-3">
+          <LanguageToggle lang={lang} onChange={setLang} />
+          <CallCTA href={telHrefPrincipal} size="sm">
+            {s.callNow}
+          </CallCTA>
+        </div>
       </header>
 
       {/* HERO */}
@@ -415,44 +581,46 @@ export function JMJPainting({ tenant, content }: TenantWithContent) {
         <div className="relative mx-auto grid max-w-6xl gap-12 lg:grid-cols-[1.05fr_0.95fr] lg:items-center">
           <div>
             <ScrollReveal y={0} duration={0.5}>
-              <p className="mb-4 text-xs font-medium tracking-[0.3em] uppercase opacity-70">General Contractor · East Brunswick, NJ</p>
+              <p className="mb-4 text-xs font-medium tracking-[0.3em] uppercase opacity-70">{s.heroEyebrow}</p>
             </ScrollReveal>
             <ScrollReveal y={16} delay={0.1} duration={0.7}>
               <h1 className={`${bitter.className} text-4xl leading-[1.08] font-semibold sm:text-5xl lg:text-[3.4rem]`}>
-                {content.textos.tagline || "Premier Remodeler in Central New Jersey"}
+                {lang === "es" ? TAGLINE_ES : content.textos.tagline || "Premier Remodeler in Central New Jersey"}
               </h1>
             </ScrollReveal>
             <ScrollReveal y={16} delay={0.25} duration={0.7}>
               <p className="mt-6 max-w-lg text-base opacity-80 sm:text-lg">
-                {content.textos.descripcion ||
-                  `${tenant.nombre} stands ready to enhance your home — painting and full remodeling, from qualified professionals who treat your project like their own.`}
+                {lang === "es"
+                  ? DESCRIPCION_ES
+                  : content.textos.descripcion ||
+                    `${tenant.nombre} stands ready to enhance your home — painting and full remodeling, from qualified professionals who treat your project like their own.`}
               </p>
             </ScrollReveal>
             <ScrollReveal y={16} delay={0.4} duration={0.7}>
               <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-2 text-sm opacity-80">
                 <span className="flex items-center gap-1.5">
                   <ClipboardCheck className="h-4 w-4" style={{ color: acento }} strokeWidth={2} aria-hidden />
-                  Free estimates
+                  {s.badgeEstimate}
                 </span>
                 <span className="flex items-center gap-1.5">
                   <Hammer className="h-4 w-4" style={{ color: acento }} strokeWidth={2} aria-hidden />
-                  Painting &amp; full remodeling
+                  {s.badgePainting}
                 </span>
                 <span className="flex items-center gap-1.5">
                   <MapPin className="h-4 w-4" style={{ color: acento }} strokeWidth={2} aria-hidden />
-                  East Central NJ
+                  {s.badgeArea}
                 </span>
               </div>
             </ScrollReveal>
             <ScrollReveal y={16} delay={0.55} duration={0.7}>
               <div className="mt-8 flex flex-wrap gap-3">
-                <CallCTA href={telHrefPrincipal}>Call {telFormateado}</CallCTA>
+                <CallCTA href={telHrefPrincipal}>{s.callConNumero(telFormateado)}</CallCTA>
                 <a
                   href="#estimate"
                   className="inline-flex items-center gap-2 rounded-lg border-2 px-6 py-3.5 text-sm font-semibold transition hover:-translate-y-0.5 sm:text-base"
                   style={{ borderColor: `${texto}30` }}
                 >
-                  Get a Free Estimate
+                  {s.getEstimate}
                 </a>
               </div>
             </ScrollReveal>
@@ -463,7 +631,7 @@ export function JMJPainting({ tenant, content }: TenantWithContent) {
             <div className="relative overflow-hidden rounded-[1.75rem] border" style={{ borderColor: `${acento}40` }}>
               <Image src={fotoHero.url} alt={fotoHero.alt} width={800} height={950} className="aspect-[4/5] w-full object-cover" priority />
               <div className="absolute top-4 left-4 rounded-lg px-3 py-1.5 font-mono text-[11px] tracking-widest text-white/90 shadow-lg" style={{ backgroundColor: `${acento}e6` }}>
-                No. 04 — INTERIOR
+                {s.heroPhotoBadge}
               </div>
             </div>
           </Parallax>
@@ -480,9 +648,9 @@ export function JMJPainting({ tenant, content }: TenantWithContent) {
       <section className="px-6 py-16 sm:px-10 sm:py-20">
         <div className="mx-auto max-w-6xl">
           <ScrollReveal>
-            <p className="mb-2 text-xs font-medium tracking-[0.3em] uppercase opacity-60">What we do</p>
-            <h2 className={`${bitter.className} mb-2 text-3xl font-semibold sm:text-4xl`}>Pick your project</h2>
-            <p className="mb-10 max-w-xl text-sm opacity-70 sm:text-base">Nine services, one crew — painting and remodeling under the same roof.</p>
+            <p className="mb-2 text-xs font-medium tracking-[0.3em] uppercase opacity-60">{s.servicesEyebrow}</p>
+            <h2 className={`${bitter.className} mb-2 text-3xl font-semibold sm:text-4xl`}>{s.servicesTitle}</h2>
+            <p className="mb-10 max-w-xl text-sm opacity-70 sm:text-base">{s.servicesSubtitle}</p>
           </ScrollReveal>
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {servicios.map((cat, i) => (
@@ -492,7 +660,7 @@ export function JMJPainting({ tenant, content }: TenantWithContent) {
                 nombre={cat.nombre}
                 items={cat.items}
                 tono={tonosSwatch[i % tonosSwatch.length]}
-                icono={iconoServicio(cat.nombre)}
+                icono={usaServiciosDefault ? SERVICIOS_ICONOS[i % SERVICIOS_ICONOS.length] : iconoServicio(cat.nombre)}
                 fondoTarjeta={fondo}
                 delay={(i % 3) * 0.08}
               />
@@ -509,14 +677,14 @@ export function JMJPainting({ tenant, content }: TenantWithContent) {
       <section className="px-6 py-16 sm:px-10 sm:py-20">
         <div className="mx-auto max-w-6xl">
           <ScrollReveal>
-            <p className="mb-2 text-xs font-medium tracking-[0.3em] uppercase opacity-60">The kind of work we do</p>
-            <h2 className={`${bitter.className} mb-10 text-3xl font-semibold sm:text-4xl`}>Kitchens, baths &amp; outdoor spaces</h2>
+            <p className="mb-2 text-xs font-medium tracking-[0.3em] uppercase opacity-60">{s.portfolioEyebrow}</p>
+            <h2 className={`${bitter.className} mb-10 text-3xl font-semibold sm:text-4xl`}>{s.portfolioTitle}</h2>
           </ScrollReveal>
           <div className="grid gap-5 sm:grid-cols-3">
             {[
-              { foto: fotoKitchen, etiqueta: "Kitchen remodeling" },
-              { foto: fotoBathroom, etiqueta: "Bathroom remodeling" },
-              { foto: fotoDeck, etiqueta: "Deck installation & repair" },
+              { foto: fotoKitchen, etiqueta: s.portfolioKitchen },
+              { foto: fotoBathroom, etiqueta: s.portfolioBathroom },
+              { foto: fotoDeck, etiqueta: s.portfolioDeck },
             ].map((item, i) => (
               <ScrollReveal key={item.etiqueta} delay={i * 0.1}>
                 <div className="relative aspect-[4/5] w-full overflow-hidden rounded-2xl border" style={{ borderColor: `${acento}30` }}>
@@ -540,7 +708,7 @@ export function JMJPainting({ tenant, content }: TenantWithContent) {
           </ScrollReveal>
           <div className="order-1 lg:order-2">
             <ScrollReveal>
-              <p className="mb-2 text-xs font-medium tracking-[0.3em] uppercase opacity-60">Why homeowners choose us</p>
+              <p className="mb-2 text-xs font-medium tracking-[0.3em] uppercase opacity-60">{s.whyEyebrow}</p>
             </ScrollReveal>
             <div className="mt-4 space-y-7">
               {pilares.map((pilar, i) => (
@@ -560,8 +728,8 @@ export function JMJPainting({ tenant, content }: TenantWithContent) {
       <section className="px-6 py-16 sm:px-10 sm:py-20">
         <div className="mx-auto max-w-3xl">
           <ScrollReveal>
-            <p className="mb-2 text-center text-xs font-medium tracking-[0.3em] uppercase opacity-60">How it works</p>
-            <h2 className={`${bitter.className} mb-12 text-center text-3xl font-semibold sm:text-4xl`}>From a call to a finished job</h2>
+            <p className="mb-2 text-center text-xs font-medium tracking-[0.3em] uppercase opacity-60">{s.howEyebrow}</p>
+            <h2 className={`${bitter.className} mb-12 text-center text-3xl font-semibold sm:text-4xl`}>{s.howTitle}</h2>
           </ScrollReveal>
           <div className="relative">
             <div aria-hidden className="absolute top-2 bottom-2 left-5 w-px opacity-25" style={{ backgroundColor: acento }} />
@@ -592,14 +760,12 @@ export function JMJPainting({ tenant, content }: TenantWithContent) {
         <div aria-hidden className="pointer-events-none absolute inset-0" style={{ backgroundColor: `${texto}cc` }} />
         <div className="relative z-10 mx-auto max-w-2xl text-center">
           <ScrollReveal>
-            <p className="mb-3 text-xs font-medium tracking-[0.3em] text-white/70 uppercase">No obligation, no cost</p>
-            <h2 className={`${bitter.className} mb-5 text-3xl font-semibold text-white sm:text-4xl`}>Get a Free Estimate</h2>
-            <p className="mx-auto mb-8 max-w-lg text-base text-white/85 sm:text-lg">
-              Tell us about your project and we&apos;ll come take a look — call for the fastest answer, or send us a text with a few photos.
-            </p>
+            <p className="mb-3 text-xs font-medium tracking-[0.3em] text-white/70 uppercase">{s.estimateEyebrow}</p>
+            <h2 className={`${bitter.className} mb-5 text-3xl font-semibold text-white sm:text-4xl`}>{s.estimateTitle}</h2>
+            <p className="mx-auto mb-8 max-w-lg text-base text-white/85 sm:text-lg">{s.estimateBody}</p>
             <div className="flex flex-wrap items-center justify-center gap-3">
-              <CallCTA href={telHrefPrincipal}>Call {telFormateado}</CallCTA>
-              <TextCTA href={waHref(telefono, WHATSAPP_MSG_ESTIMATE)}>Text us photos</TextCTA>
+              <CallCTA href={telHrefPrincipal}>{s.callConNumero(telFormateado)}</CallCTA>
+              <TextCTA href={waHref(telefono, WHATSAPP_MSG_ESTIMATE[lang])}>{s.textPhotos}</TextCTA>
             </div>
           </ScrollReveal>
         </div>
@@ -620,8 +786,8 @@ export function JMJPainting({ tenant, content }: TenantWithContent) {
       <section className="px-6 py-16 sm:px-10 sm:py-20">
         <div className="mx-auto max-w-2xl">
           <ScrollReveal>
-            <p className="mb-2 text-xs font-medium tracking-[0.3em] uppercase opacity-60">Common questions</p>
-            <h2 className={`${bitter.className} mb-8 text-3xl font-semibold sm:text-4xl`}>Frequently asked questions</h2>
+            <p className="mb-2 text-xs font-medium tracking-[0.3em] uppercase opacity-60">{s.faqEyebrow}</p>
+            <h2 className={`${bitter.className} mb-8 text-3xl font-semibold sm:text-4xl`}>{s.faqTitle}</h2>
           </ScrollReveal>
           <div className="space-y-3">
             {faq.map((item, i) => (
@@ -641,8 +807,8 @@ export function JMJPainting({ tenant, content }: TenantWithContent) {
       <section className="px-6 py-16 sm:px-10 sm:py-20" style={{ backgroundColor: `${acento}0c` }}>
         <div className="mx-auto max-w-2xl text-center">
           <ScrollReveal>
-            <p className="mb-2 text-xs font-medium tracking-[0.3em] uppercase opacity-60">Service area</p>
-            <h2 className={`${bitter.className} mb-6 text-3xl font-semibold sm:text-4xl`}>We come to you</h2>
+            <p className="mb-2 text-xs font-medium tracking-[0.3em] uppercase opacity-60">{s.areaEyebrow}</p>
+            <h2 className={`${bitter.className} mb-6 text-3xl font-semibold sm:text-4xl`}>{s.areaTitle}</h2>
 
             <div className="flex flex-col items-center gap-3 text-base opacity-85">
               <span className="flex items-center gap-2">
@@ -665,7 +831,7 @@ export function JMJPainting({ tenant, content }: TenantWithContent) {
             </div>
 
             <div className="mt-8">
-              <CallCTA href={telHrefPrincipal}>Call {telFormateado}</CallCTA>
+              <CallCTA href={telHrefPrincipal}>{s.callConNumero(telFormateado)}</CallCTA>
             </div>
           </ScrollReveal>
         </div>
@@ -690,19 +856,23 @@ export function JMJPainting({ tenant, content }: TenantWithContent) {
             )}
           </div>
         </div>
-        {content.formasPago.length > 0 && <p className="mt-3">Payment methods: {content.formasPago.join(", ")}</p>}
+        {content.formasPago.length > 0 && (
+          <p className="mt-3">
+            {s.paymentMethods}
+            {content.formasPago.join(", ")}
+          </p>
+        )}
         <p className="mt-4 max-w-3xl leading-relaxed">
-          {tenant.nombre} doesn&apos;t have its own photos loaded yet — the photos on this page are sample images, licensed via Unsplash (free for
-          commercial use), illustrative of remodeling and painting work in general (not actual completed jobs of this business), by{" "}
+          {s.footerNotice(tenant.nombre)}
           {CREDITOS_UNSPLASH.map((c, i) => (
             <span key={c.nombre}>
               <a href={c.perfil} target="_blank" rel="noreferrer" className="underline">
                 {c.nombre}
               </a>
-              {i < CREDITOS_UNSPLASH.length - 1 ? (i === CREDITOS_UNSPLASH.length - 2 ? " and " : ", ") : ""}
+              {i < CREDITOS_UNSPLASH.length - 1 ? (i === CREDITOS_UNSPLASH.length - 2 ? s.footerAnd : ", ") : ""}
             </span>
-          ))}{" "}
-          on{" "}
+          ))}
+          {s.footerOn}
           <a href="https://unsplash.com" target="_blank" rel="noreferrer" className="underline">
             Unsplash
           </a>
@@ -714,9 +884,21 @@ export function JMJPainting({ tenant, content }: TenantWithContent) {
       <div className="fixed right-5 bottom-5 z-40 sm:hidden">
         <span aria-hidden className="absolute inset-0 animate-ping rounded-full opacity-60" style={{ backgroundColor: acento }} />
         <CallCTA href={telHrefPrincipal} size="sm">
-          Call Now
+          {s.callNow}
         </CallCTA>
       </div>
     </div>
   );
 }
+
+// Atribución obligatoria (webya.md sección 3/7) — fotografía de muestra,
+// ilustrativa, con licencia Unsplash de uso comercial libre. No son fotos
+// de trabajos reales de JMJ (ver footer).
+const CREDITOS_UNSPLASH = [
+  { nombre: "Ali Mkumbwa", perfil: "https://unsplash.com/@mkumbwajr" },
+  { nombre: "Zac Gudakov", perfil: "https://unsplash.com/@zacgudakov" },
+  { nombre: "Clay Banks", perfil: "https://unsplash.com/@claybanks" },
+  { nombre: "Sasun Bughdaryan", perfil: "https://unsplash.com/@sasun1990" },
+  { nombre: "josh A. D.", perfil: "https://unsplash.com/@mista_j" },
+  { nombre: "web seo", perfil: "https://unsplash.com/@webseoweb" },
+];

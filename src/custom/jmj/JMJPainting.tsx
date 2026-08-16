@@ -300,7 +300,7 @@ const FAQ_DEFAULT_ES = [
 // Traducción "instantánea" del contenido real ya cargado en
 // tenant_content.textos (tagline/descripción) — ver nota de alcance del
 // toggle más arriba para el porqué de este patrón y su limitación conocida.
-const TAGLINE_ES = "El Remodelador Líder del Centro de Nueva Jersey";
+const TAGLINE_ES = "JMJ Remodelación de Interiores";
 const DESCRIPCION_ES =
   "Como el remodelador líder del centro-este de Nueva Jersey, JMJ Painting & Remodeling está listo para mejorar tu hogar. Años de experiencia, profesionales calificados y trabajo de calidad en cada proyecto — desde una sola habitación hasta una renovación completa.";
 

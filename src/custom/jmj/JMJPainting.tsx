@@ -383,6 +383,7 @@ export function JMJPainting({ tenant, content }: TenantWithContent) {
   const fotoCraft = foto(content.fotos, "craftsmanship.jpg", "Hands applying plaster to a wall with a trowel");
   const fotoEstimate = foto(content.fotos, "estimate.jpg", "A person holding a tape measure");
   const fotoExterior = foto(content.fotos, "exterior.jpg", "A concrete driveway in front of a house");
+  const logo = foto(content.fotos, "logo.png", "JMJ Painting & Remodeling logo");
 
   // Tonos de la muestra de pintura, cíclicos entre el acento del tenant y
   // los dos tonos fijos de esta página (ver nota arriba) — un "paint deck"
@@ -395,12 +396,13 @@ export function JMJPainting({ tenant, content }: TenantWithContent) {
       style={{ ["--tenant-acento" as string]: acento, backgroundColor: fondo, color: texto }}
       className={`${bitter.variable} ${workSans.variable} min-h-screen font-sans`}
     >
-      {/* Header */}
+      {/* Header — logo real del negocio (2026-08-16, reemplaza el ícono
+          genérico + wordmark que se usaba mientras no había logo). El
+          logo se resuelve con el mismo helper `foto()` que el resto de
+          fotos: si el admin llega a subir otro archivo con este nombre
+          desde el panel, lo reemplaza sin tocar código. */}
       <header className="fixed inset-x-0 top-0 z-40 flex items-center justify-between px-6 py-4 backdrop-blur-[2px] sm:px-10" style={{ backgroundColor: `${fondo}e6` }}>
-        <span className="flex items-center gap-2">
-          <PaintRoller className="h-5 w-5" style={{ color: acento }} strokeWidth={2} aria-hidden />
-          <span className={`${bitter.className} text-base font-semibold tracking-tight sm:text-lg`}>JMJ Painting &amp; Remodeling</span>
-        </span>
+        <Image src={logo.url} alt={logo.alt} width={160} height={48} className="h-9 w-auto sm:h-10" priority />
         <CallCTA href={telHrefPrincipal} size="sm">
           Call Now
         </CallCTA>

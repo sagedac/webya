@@ -47,3 +47,31 @@ body {
     animation: none;
   }
 }
+
+/* Trazo de línea SVG por CSS puro (sin GSAP/ScrollTrigger) — para el mismo
+   caso que animate-fade-in-up: contenido garantizado visible al cargar
+   (el nodo del hero de SAGEDAC, src/custom/sagedac/Sagedac.tsx) que no debe
+   depender de la posición de scroll para revelarse (bug real documentado
+   en webya.md, 2026-08-16). Usa el atributo SVG `pathLength="1"` en cada
+   <path> para normalizar su longitud a 1 sin calcularla en JS — así
+   stroke-dasharray/stroke-dashoffset funcionan con valores fijos (0 a 1)
+   sin importar el trazo real de cada línea. */
+@theme {
+  --animate-draw-line: draw-line 1.1s cubic-bezier(0.65, 0, 0.35, 1) both;
+}
+
+@keyframes draw-line {
+  from {
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-draw-line {
+    animation: none;
+    stroke-dashoffset: 0;
+  }
+}

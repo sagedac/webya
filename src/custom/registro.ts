@@ -6,6 +6,7 @@ import { Moonvet } from "@/custom/moonvet/Moonvet";
 import { JMJPainting } from "@/custom/jmj/JMJPainting";
 import { TravelAgency } from "@/custom/travel-agency/TravelAgency";
 import { JYWCC } from "@/custom/jyw-cc/JYWCC";
+import { Sagedac } from "@/custom/sagedac/Sagedac";
 
 // Registro de tenants "código a medida" (webya.md sección 5, plan =
 // custom_code). Cada cliente se construye a mano (Antigravity/Claude Code,
@@ -20,4 +21,5 @@ export const REGISTRO_CUSTOM: Record<string, ComponentType<TenantWithContent>> =
   jmj: JMJPainting,
   "travel-agency": TravelAgency,
   "jyw-cc": JYWCC,
+  sagedac: Sagedac,
 };

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Bitter, Work_Sans } from "next/font/google";
 import Image from "next/image";
 import {
@@ -21,6 +21,7 @@ import {
   Phone,
   PaintRoller,
   Warehouse,
+  X,
 } from "lucide-react";
 import type { CategoriaProducto, Foto, TenantWithContent } from "@/lib/types";
 import { ScrollReveal } from "@/engine/ScrollReveal";
@@ -342,6 +343,9 @@ const T = {
       `${nombre} doesn't have its own photos loaded yet — the photos on this page are sample images, licensed via Unsplash (free for commercial use), illustrative of remodeling and painting work in general (not actual completed jobs of this business), by `,
     footerOn: " on ",
     footerAnd: " and ",
+    modalClose: "Close",
+    modalCtaBody: "Get a free, no-obligation estimate for this project.",
+    waMensajeServicio: (nombre: string) => `Hi, I'd like a free estimate for: ${nombre}`,
   },
   es: {
     callNow: "Llamar ahora",
@@ -376,6 +380,9 @@ const T = {
       `${nombre} todavía no tiene fotos propias cargadas — las fotos de esta página son imágenes de muestra, con licencia de Unsplash (uso comercial gratuito), ilustrativas de trabajos de remodelación y pintura en general (no son trabajos reales terminados de este negocio), por `,
     footerOn: " en ",
     footerAnd: " y ",
+    modalClose: "Cerrar",
+    modalCtaBody: "Solicita una cotización gratis y sin compromiso para este proyecto.",
+    waMensajeServicio: (nombre: string) => `Hola, quisiera una cotización gratis para: ${nombre}`,
   },
 } as const satisfies Record<Idioma, Record<string, string | ((arg: string) => string)>>;
 
@@ -479,9 +486,13 @@ function LanguageToggle({ lang, onChange }: { lang: Idioma; onChange: (l: Idioma
 }
 
 // Tarjeta "muestra de pintura" — la firma visual de esta página (ver nota
-// arriba). Bloque de color sólido con el ícono del servicio + un "código de
-// muestra" arriba (No. 01, 02...), nombre y alcance del servicio abajo,
-// como una tarjeta de tienda de pinturas.
+// arriba). Foto del servicio con un tinte del tono de la muestra encima
+// (mantiene el look de "paint chip" sin perder la foto real), un "código de
+// muestra" arriba (No. 01, 02...) y el ícono; nombre y alcance abajo, como
+// una tarjeta de tienda de pinturas. Es un <button>, no un <div> — la
+// tarjeta completa abre el popup de detalle (2026-08-16, pedido explícito
+// de Paul: fotos en las tarjetas + click para ver detalle y pedir cotización
+// de ese servicio específico).
 function MuestraServicio({
   numero,
   nombre,
@@ -490,6 +501,9 @@ function MuestraServicio({
   icono: Icono,
   fondoTarjeta,
   delay,
+  fotoSrc,
+  fotoAlt,
+  onClick,
 }: {
   numero: string;
   nombre: string;
@@ -498,13 +512,23 @@ function MuestraServicio({
   icono: typeof Hammer;
   fondoTarjeta: string;
   delay: number;
+  fotoSrc?: string;
+  fotoAlt?: string;
+  onClick: () => void;
 }) {
   return (
     <ScrollReveal delay={delay} y={20}>
-      <div className="group h-full overflow-hidden rounded-2xl border shadow-sm transition-shadow hover:shadow-md" style={{ borderColor: `${tono}35` }}>
-        <div className="relative flex h-24 items-center justify-center transition-transform duration-300 group-hover:scale-[1.03] sm:h-28" style={{ backgroundColor: tono }}>
-          <span className="absolute top-2.5 left-3 font-mono text-[11px] tracking-[0.15em] text-white/75">No. {numero}</span>
-          <Icono className="h-8 w-8 text-white/95" strokeWidth={1.6} aria-hidden />
+      <button
+        type="button"
+        onClick={onClick}
+        className="group block h-full w-full overflow-hidden rounded-2xl border text-left shadow-sm transition-shadow hover:shadow-md"
+        style={{ borderColor: `${tono}35` }}
+      >
+        <div className="relative flex h-24 items-center justify-center overflow-hidden transition-transform duration-300 group-hover:scale-[1.03] sm:h-28" style={{ backgroundColor: tono }}>
+          {fotoSrc && <Image src={fotoSrc} alt={fotoAlt ?? ""} fill sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw" className="object-cover" />}
+          <div aria-hidden className="absolute inset-0" style={{ backgroundColor: tono, opacity: fotoSrc ? 0.55 : 1 }} />
+          <span className="absolute top-2.5 left-3 font-mono text-[11px] tracking-[0.15em] text-white/85">No. {numero}</span>
+          <Icono className="relative h-8 w-8 text-white/95" strokeWidth={1.6} aria-hidden />
         </div>
         <div className="p-5" style={{ backgroundColor: fondoTarjeta }}>
           <h3 className={`${bitter.className} text-lg font-semibold`}>{nombre}</h3>
@@ -519,14 +543,118 @@ function MuestraServicio({
             </ul>
           )}
         </div>
-      </div>
+      </button>
     </ScrollReveal>
+  );
+}
+
+// Popup de detalle de servicio — se abre al hacer click en una tarjeta de
+// MuestraServicio (estado servicioAbierto en JMJPainting). Mismo patrón de
+// lightbox (backdrop click + Escape + scroll lock del body) que
+// src/custom/trazojoyas/PiezasList.tsx, adaptado acá para mostrar detalle +
+// CTA de cotización en vez de una galería de fotos.
+function ModalServicio({
+  numero,
+  nombre,
+  items,
+  tono,
+  fotoSrc,
+  fotoAlt,
+  telHrefPrincipal,
+  telFormateado,
+  waHrefServicio,
+  onClose,
+  s,
+}: {
+  numero: string;
+  nombre: string;
+  items: string[];
+  tono: string;
+  fotoSrc?: string;
+  fotoAlt?: string;
+  telHrefPrincipal: string;
+  telFormateado: string;
+  waHrefServicio: string;
+  onClose: () => void;
+  s: (typeof T)[Idioma];
+}) {
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    document.addEventListener("keydown", onKeyDown);
+    const overflowPrevio = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", onKeyDown);
+      document.body.style.overflow = overflowPrevio;
+    };
+  }, [onClose]);
+
+  return (
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-label={nombre}
+      onClick={onClose}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 sm:p-6"
+    >
+      <div onClick={(e) => e.stopPropagation()} className="relative w-full max-w-lg overflow-hidden rounded-2xl bg-white shadow-2xl">
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label={s.modalClose}
+          className="absolute top-3 right-3 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur-sm transition hover:bg-black/60"
+        >
+          <X className="h-5 w-5" strokeWidth={2} aria-hidden />
+        </button>
+        {fotoSrc && (
+          <div className="relative h-48 w-full sm:h-56">
+            <Image src={fotoSrc} alt={fotoAlt ?? ""} fill sizes="512px" className="object-cover" />
+            <div aria-hidden className="pointer-events-none absolute inset-0" style={{ backgroundColor: tono, opacity: 0.28 }} />
+            <span className="absolute bottom-3 left-4 rounded px-2 py-1 font-mono text-[11px] tracking-widest text-white" style={{ backgroundColor: `${tono}e6` }}>
+              No. {numero}
+            </span>
+          </div>
+        )}
+        <div className="max-h-[55vh] overflow-y-auto p-6 text-neutral-900 sm:p-7">
+          <h3 className={`${bitter.className} text-2xl font-semibold`}>{nombre}</h3>
+          {items.length > 0 && (
+            <ul className="mt-4 space-y-2 text-sm opacity-80">
+              {items.map((item) => (
+                <li key={item} className="flex items-start gap-2">
+                  <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" style={{ color: tono }} strokeWidth={2} aria-hidden />
+                  <span>{item}</span>
+                </li>
+              ))}
+            </ul>
+          )}
+          <p className="mt-5 text-sm opacity-70">{s.modalCtaBody}</p>
+          <div className="mt-4 flex flex-wrap gap-3">
+            <CallCTA href={telHrefPrincipal} variant="solido">
+              {s.callConNumero(telFormateado)}
+            </CallCTA>
+            <a
+              href={waHrefServicio}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-2 rounded-lg border-2 px-6 py-3.5 text-sm font-semibold transition hover:-translate-y-0.5"
+              style={{ borderColor: `${tono}60`, color: tono }}
+            >
+              <MessageCircle className="h-5 w-5" strokeWidth={2.5} aria-hidden />
+              {s.textPhotos}
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }
 
 export function JMJPainting({ tenant, content }: TenantWithContent) {
   const [lang, setLang] = useState<Idioma>("en");
   const s = T[lang];
+  const [servicioAbierto, setServicioAbierto] = useState<number | null>(null);
 
   const acento = content.coloresMarca.acento;
   const fondo = content.coloresMarca.fondo;
@@ -552,11 +680,50 @@ export function JMJPainting({ tenant, content }: TenantWithContent) {
   const fotoExterior = foto(content.fotos, "exterior.jpg", "A concrete driveway in front of a house");
   const logo = foto(content.fotos, "logo.png", "JMJ Painting & Remodeling logo");
 
+  const fotoBasement = foto(content.fotos, "basement.jpg", "A finished basement living space with wood-look flooring");
+  const fotoPainting = foto(content.fotos, "painting.jpg", "A painter rolling paint onto an interior wall");
+  const fotoDrywall = foto(content.fotos, "drywall.jpg", "A person applying joint compound to drywall seams");
+  const fotoFlooring = foto(content.fotos, "flooring.jpg", "A person installing wood flooring boards");
+
   // Tonos de la muestra de pintura, cíclicos entre el acento del tenant y
   // los dos tonos fijos de esta página (ver nota arriba) — un "paint deck"
   // real tampoco usa un color distinto por cada muestra, repite una
   // familia acotada de tonos.
   const tonosSwatch = [acento, SWATCH_TERRACOTTA, SWATCH_MADERA];
+
+  // Foto por servicio, en el MISMO orden que SERVICIOS_DEFAULT_EN/ES y
+  // SERVICIOS_ICONOS (independiente del idioma, mismo criterio que los
+  // íconos — ver nota arriba). "Pavers & Concrete" y "Power Washing"
+  // reutilizan fotoExterior (entrada de concreto): calza razonablemente con
+  // ambos servicios y evita dejarlos sin foto mientras no haya una muestra
+  // dedicada para cada uno. Solo se usa cuando el admin no cargó sus propios
+  // servicios (usaServiciosDefault) — un servicio escrito a mano por el
+  // admin no tiene forma de saber qué foto le corresponde, así que esas
+  // tarjetas se muestran sin foto (ver MuestraServicio, fotoSrc opcional).
+  const FOTOS_SERVICIOS_DEFAULT: Foto[] = [
+    fotoBathroom,
+    fotoKitchen,
+    fotoBasement,
+    fotoPainting,
+    fotoDeck,
+    fotoDrywall,
+    fotoFlooring,
+    fotoExterior,
+    fotoExterior,
+  ];
+
+  // Precalculado una sola vez y reutilizado tanto por el grid de tarjetas
+  // como por el popup (servicioAbierto guarda el índice, no una copia de los
+  // datos) — evita recalcular tono/ícono/foto con lógica distinta en dos
+  // lugares.
+  const serviciosConMeta = servicios.map((cat, i) => ({
+    cat,
+    numero: String(i + 1).padStart(2, "0"),
+    tono: tonosSwatch[i % tonosSwatch.length],
+    icono: usaServiciosDefault ? SERVICIOS_ICONOS[i % SERVICIOS_ICONOS.length] : iconoServicio(cat.nombre),
+    foto: usaServiciosDefault ? FOTOS_SERVICIOS_DEFAULT[i % FOTOS_SERVICIOS_DEFAULT.length] : undefined,
+  }));
+  const servicioModal = servicioAbierto != null ? serviciosConMeta[servicioAbierto] : undefined;
 
   return (
     <div
@@ -653,16 +820,19 @@ export function JMJPainting({ tenant, content }: TenantWithContent) {
             <p className="mb-10 max-w-xl text-sm opacity-70 sm:text-base">{s.servicesSubtitle}</p>
           </ScrollReveal>
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {servicios.map((cat, i) => (
+            {serviciosConMeta.map((m, i) => (
               <MuestraServicio
-                key={cat.nombre}
-                numero={String(i + 1).padStart(2, "0")}
-                nombre={cat.nombre}
-                items={cat.items}
-                tono={tonosSwatch[i % tonosSwatch.length]}
-                icono={usaServiciosDefault ? SERVICIOS_ICONOS[i % SERVICIOS_ICONOS.length] : iconoServicio(cat.nombre)}
+                key={m.cat.nombre}
+                numero={m.numero}
+                nombre={m.cat.nombre}
+                items={m.cat.items}
+                tono={m.tono}
+                icono={m.icono}
                 fondoTarjeta={fondo}
                 delay={(i % 3) * 0.08}
+                fotoSrc={m.foto?.url}
+                fotoAlt={m.foto?.alt}
+                onClick={() => setServicioAbierto(i)}
               />
             ))}
           </div>
@@ -887,6 +1057,26 @@ export function JMJPainting({ tenant, content }: TenantWithContent) {
           {s.callNow}
         </CallCTA>
       </div>
+
+      {/* Popup de detalle de servicio (click en una tarjeta del "Swatch
+          Board") — CTA de cotización con mensaje de WhatsApp personalizado
+          para el servicio abierto, mismo criterio que el CTA por destino de
+          DeluxTravel. */}
+      {servicioModal && (
+        <ModalServicio
+          numero={servicioModal.numero}
+          nombre={servicioModal.cat.nombre}
+          items={servicioModal.cat.items}
+          tono={servicioModal.tono}
+          fotoSrc={servicioModal.foto?.url}
+          fotoAlt={servicioModal.foto?.alt}
+          telHrefPrincipal={telHrefPrincipal}
+          telFormateado={telFormateado}
+          waHrefServicio={waHref(telefono, s.waMensajeServicio(servicioModal.cat.nombre))}
+          onClose={() => setServicioAbierto(null)}
+          s={s}
+        />
+      )}
     </div>
   );
 }
@@ -901,4 +1091,8 @@ const CREDITOS_UNSPLASH = [
   { nombre: "Sasun Bughdaryan", perfil: "https://unsplash.com/@sasun1990" },
   { nombre: "josh A. D.", perfil: "https://unsplash.com/@mista_j" },
   { nombre: "web seo", perfil: "https://unsplash.com/@webseoweb" },
+  { nombre: "Point3D Commercial Imaging Ltd.", perfil: "https://unsplash.com/@3dottawa" },
+  { nombre: "Andrew Itaga", perfil: "https://unsplash.com/@and73w" },
+  { nombre: "Joao", perfil: "https://unsplash.com/@zymot" },
+  { nombre: "Jimmy Nilsson Masth", perfil: "https://unsplash.com/@jimmynilssonmasth" },
 ];

@@ -4,6 +4,7 @@ import { TrazoJoyas } from "@/custom/trazojoyas/TrazoJoyas";
 import { DeluxTravel } from "@/custom/deluxtravel/DeluxTravel";
 import { Moonvet } from "@/custom/moonvet/Moonvet";
 import { JMJPainting } from "@/custom/jmj/JMJPainting";
+import { TravelAgency } from "@/custom/travel-agency/TravelAgency";
 
 // Registro de tenants "código a medida" (webya.md sección 5, plan =
 // custom_code). Cada cliente se construye a mano (Antigravity/Claude Code,
@@ -16,4 +17,5 @@ export const REGISTRO_CUSTOM: Record<string, ComponentType<TenantWithContent>> =
   deluxtravel: DeluxTravel,
   moonvet: Moonvet,
   jmj: JMJPainting,
+  "travel-agency": TravelAgency,
 };

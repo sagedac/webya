@@ -104,7 +104,14 @@ export interface Cifra {
 // 2026-08-13) — mismo criterio: VeterinaryCare existe en schema.org como
 // subtipo real de LocalBusiness (organización médica veterinaria) y es
 // más preciso que "servicios" genérico para una clínica veterinaria.
-export type Rubro = "restaurante" | "cafeteria" | "panaderia" | "carniceria_tienda" | "tienda_retail" | "joyeria" | "agencia_viajes" | "veterinaria" | "servicios" | "otro";
+// "contratista_remodelacion" se agregó junto con el caso JMJ Painting &
+// Remodeling (código a medida, 2026-08-16, primer tenant fuera de Ecuador
+// — East Brunswick, NJ, EE.UU.) — mismo criterio que joyeria/agencia_viajes/
+// veterinaria: GeneralContractor existe en schema.org como subtipo real de
+// HomeAndConstructionBusiness (a su vez subtipo de LocalBusiness) y es más
+// preciso que "servicios" genérico para un contratista de remodelación y
+// pintura residencial.
+export type Rubro = "restaurante" | "cafeteria" | "panaderia" | "carniceria_tienda" | "tienda_retail" | "joyeria" | "agencia_viajes" | "veterinaria" | "contratista_remodelacion" | "servicios" | "otro";
 
 export const RUBROS_DISPONIBLES: { value: Rubro; label: string }[] = [
   { value: "restaurante", label: "Restaurante" },
@@ -115,6 +122,7 @@ export const RUBROS_DISPONIBLES: { value: Rubro; label: string }[] = [
   { value: "joyeria", label: "Joyería" },
   { value: "agencia_viajes", label: "Agencia de viajes" },
   { value: "veterinaria", label: "Clínica veterinaria" },
+  { value: "contratista_remodelacion", label: "Contratista / remodelación" },
   { value: "servicios", label: "Servicios profesionales" },
   { value: "otro", label: "Otro / sin especificar" },
 ];

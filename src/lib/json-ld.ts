@@ -21,6 +21,11 @@ const RUBRO_SCHEMA_TYPE: Record<Rubro, string> = {
   // (organización médica) — se agregó junto con el caso Moonvet (código a
   // medida, 2026-08-13), mismo criterio que joyeria/agencia_viajes.
   veterinaria: "VeterinaryCare",
+  // GeneralContractor existe en schema.org como subtipo real de
+  // HomeAndConstructionBusiness (a su vez subtipo de LocalBusiness) — se
+  // agregó junto con el caso JMJ Painting & Remodeling (código a medida,
+  // 2026-08-16), mismo criterio que joyeria/agencia_viajes/veterinaria.
+  contratista_remodelacion: "GeneralContractor",
   servicios: "LocalBusiness",
   otro: "LocalBusiness",
 };
@@ -116,12 +121,20 @@ export function buildLocalBusinessJsonLd(tenant: Tenant, content: TenantContent,
   const fotoHero = content.fotos[0]?.url;
   if (fotoHero) jsonLd.image = fotoHero.startsWith("http") ? fotoHero : `${baseUrl}${fotoHero}`;
 
+  // "Cuenca"/"EC" estaban hardcodeados acá desde que este archivo solo
+  // servía tenants ecuatorianos — dejó de ser correcto con el primer tenant
+  // fuera de Ecuador (JMJ Painting & Remodeling, East Brunswick NJ, EE.UU.,
+  // 2026-08-16). tenant_content no tiene columnas separadas para
+  // localidad/país (solo `textos.direccion` como texto libre, sección 5 de
+  // webya.md) y adivinarlas del texto sería frágil, así que en vez de
+  // agregar una heurística poco confiable, streetAddress queda como el
+  // único campo que se completa siempre — sigue siendo válido schema.org
+  // (PostalAddress no exige el resto de sub-campos) y no le asigna a un
+  // negocio de otro país/ciudad una localidad/país que no le corresponde.
   if (content.textos.direccion) {
     jsonLd.address = {
       "@type": "PostalAddress",
       streetAddress: content.textos.direccion,
-      addressLocality: "Cuenca",
-      addressCountry: "EC",
     };
   }
 

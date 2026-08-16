@@ -194,36 +194,53 @@ export function Home26st() {
                 26st construye páginas web a medida — código propio, no plantillas — para negocios con buenas reseñas en Google que todavía no tienen sitio.
               </p>
             </ScrollReveal>
-            <ScrollReveal y={18} delay={0.4} duration={0.7}>
-              <div className="mt-8 flex flex-wrap gap-3">
-                <a
-                  href="#contacto"
-                  className="inline-flex items-center gap-2 rounded-lg px-6 py-3.5 text-sm font-semibold text-black shadow-lg transition hover:-translate-y-0.5 hover:shadow-xl sm:text-base"
-                  style={{ backgroundColor: ACENTO }}
-                >
-                  Quiero mi página
-                  <ArrowRight className="h-4 w-4" strokeWidth={2.5} aria-hidden />
-                </a>
-                <a
-                  href="#portafolio"
-                  className="inline-flex items-center gap-2 rounded-lg border-2 border-white/20 px-6 py-3.5 text-sm font-semibold transition hover:-translate-y-0.5 hover:border-white/40 sm:text-base"
-                >
-                  Ver portafolio
-                </a>
+            {/* CSS puro (animate-fade-in-up, ya definida en globals.css) en vez
+                de ScrollReveal para estos dos últimos bloques del hero — bug
+                real encontrado 2026-08-16 al bajar el precio a $49:
+                ScrollReveal depende de un ScrollTrigger con "start: top 85%",
+                y en este hero en particular el punto de disparo calculado para
+                estos dos bloques quedaba a apenas ~30px del umbral — lo
+                bastante cerca del límite como para que, según detalles
+                menores de layout (fuentes, redondeo de la métrica de scroll),
+                a veces nunca se revelaran sin que el usuario hiciera scroll o
+                resize manual. Ni subir el umbral a "top 100%" ni forzar un
+                refresh tras cargar fuentes (ver scheduleRefresh en
+                src/engine/gsap.ts, que de todas formas vale la pena para
+                contenido más abajo en la página) lo resolvieron de forma
+                confiable. Contenido que ya está garantizado dentro del
+                viewport al cargar (como el hero) no debería depender de la
+                posición de scroll para revelarse — de ahí este cambio,
+                animación CSS con animation-delay escalonado, sin GSAP/
+                ScrollTrigger de por medio. */}
+            <div className="mt-8 flex flex-wrap gap-3 animate-fade-in-up" style={{ animationDelay: "0.4s" }}>
+              <a
+                href="#contacto"
+                className="inline-flex items-center gap-2 rounded-lg px-6 py-3.5 text-sm font-semibold text-black shadow-lg transition hover:-translate-y-0.5 hover:shadow-xl sm:text-base"
+                style={{ backgroundColor: ACENTO }}
+              >
+                Quiero mi página
+                <ArrowRight className="h-4 w-4" strokeWidth={2.5} aria-hidden />
+              </a>
+              <a
+                href="#portafolio"
+                className="inline-flex items-center gap-2 rounded-lg border-2 border-white/20 px-6 py-3.5 text-sm font-semibold transition hover:-translate-y-0.5 hover:border-white/40 sm:text-base"
+              >
+                Ver portafolio
+              </a>
+            </div>
+            <div className="mt-12 flex flex-wrap items-center gap-x-10 gap-y-4 animate-fade-in-up" style={{ animationDelay: "0.55s" }}>
+              <div>
+                <CountUp to={4} className={`${bitter.className} text-3xl font-extrabold`} style={{ color: ACENTO }} />
+                <p className="mt-1 text-xs tracking-wide text-white/50 uppercase">Páginas ya en línea</p>
               </div>
-            </ScrollReveal>
-            <ScrollReveal y={18} delay={0.55} duration={0.7}>
-              <div className="mt-12 flex flex-wrap items-center gap-x-10 gap-y-4">
-                <div>
-                  <CountUp to={4} className={`${bitter.className} text-3xl font-extrabold`} style={{ color: ACENTO }} />
-                  <p className="mt-1 text-xs tracking-wide text-white/50 uppercase">Páginas ya en línea</p>
+              <div>
+                <div className="flex items-baseline gap-1.5">
+                  <span className="text-sm font-medium opacity-60">Desde</span>
+                  <CountUp to={49} prefix="$" className={`${bitter.className} text-3xl font-extrabold`} style={{ color: ACENTO }} />
                 </div>
-                <div>
-                  <CountUp to={100} prefix="$" className={`${bitter.className} text-3xl font-extrabold`} style={{ color: ACENTO }} />
-                  <p className="mt-1 text-xs tracking-wide text-white/50 uppercase">Por página, sin sorpresas</p>
-                </div>
+                <p className="mt-1 text-xs tracking-wide text-white/50 uppercase">Por página, sin sorpresas</p>
               </div>
-            </ScrollReveal>
+            </div>
           </div>
 
           <Parallax speed={0.15} className="relative mx-auto w-full">
@@ -303,17 +320,18 @@ export function Home26st() {
         <div className="mx-auto max-w-3xl text-center">
           <ScrollReveal>
             <p className="mb-2 text-xs font-medium tracking-[0.3em] uppercase opacity-60">Precio</p>
-            <h2 className={`${bitter.className} mb-4 text-3xl font-bold sm:text-4xl`}>Un solo estándar. Un solo precio.</h2>
+            <h2 className={`${bitter.className} mb-4 text-3xl font-bold sm:text-4xl`}>Un solo estándar. Precio claro.</h2>
             <p className="mx-auto mb-10 max-w-lg text-sm opacity-70 sm:text-base">
               No hay versión barata de la que amortizar menos trabajo — cada página se construye con el mismo nivel, sin importar el rubro.
             </p>
           </ScrollReveal>
           <ScrollReveal delay={0.1} scale={0.96}>
             <div className="mx-auto max-w-sm rounded-3xl border-2 p-8" style={{ borderColor: ACENTO }}>
+              <p className="text-sm font-medium opacity-60">Desde</p>
               <p className={`${bitter.className} text-5xl font-extrabold`} style={{ color: ACENTO }}>
-                $100
+                $49
               </p>
-              <p className="mt-1 text-sm opacity-60">por página</p>
+              <p className="mt-1 text-sm opacity-60">por página, en subdominio de 26st</p>
               <ul className="mt-6 space-y-2.5 text-left text-sm">
                 {["Código a medida para tu negocio", "Animaciones y diseño mobile-first", "SEO local (datos estructurados)", "Botón de WhatsApp fijo en el celular", "Panel para editar tú mismo cuando quieras"].map((item) => (
                   <li key={item} className="flex items-start gap-2">
@@ -322,9 +340,10 @@ export function Home26st() {
                   </li>
                 ))}
               </ul>
+              <p className="mt-5 text-xs opacity-50">¿Quieres dominio propio o hosting con nosotros? Súmalo a la cotización — el precio final depende de qué necesites.</p>
               <a
                 href="#contacto"
-                className="mt-7 inline-flex w-full items-center justify-center gap-2 rounded-lg px-6 py-3.5 text-sm font-semibold text-black transition hover:-translate-y-0.5"
+                className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-lg px-6 py-3.5 text-sm font-semibold text-black transition hover:-translate-y-0.5"
                 style={{ backgroundColor: ACENTO }}
               >
                 Quiero mi página

@@ -2,7 +2,7 @@
 
 import { useRef, type ReactNode } from "react";
 import { useGSAP } from "@gsap/react";
-import { gsap } from "@/engine/gsap";
+import { gsap, scheduleRefresh } from "@/engine/gsap";
 
 export interface ScrollRevealProps {
   children: ReactNode;
@@ -45,6 +45,7 @@ export function ScrollReveal({ children, y = 24, scale, delay = 0, duration = 0.
           ease: "power2.out",
           scrollTrigger: { trigger: ref.current, start, toggleActions: "play none none reverse" },
         });
+        document.fonts.ready.then(scheduleRefresh);
       });
 
       return () => mm.revert();

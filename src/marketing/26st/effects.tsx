@@ -2,13 +2,13 @@
 
 import { useRef, type CSSProperties } from "react";
 import { useGSAP } from "@gsap/react";
-import { gsap } from "@/engine/gsap";
+import { gsap, scheduleRefresh } from "@/engine/gsap";
 
 // Extensión propia de esta página (mismo criterio que
 // src/custom/deluxtravel/effects.tsx: vive acá porque todavía no tiene un
 // segundo caso de uso confirmado fuera de la landing de 26st). Contador
 // numérico para la franja de cifras del hero — prefix/suffix en vez de
-// asumir formato, para poder mostrar "$100" y "4" con el mismo componente.
+// asumir formato, para poder mostrar "$49" y "4" con el mismo componente.
 export function CountUp({
   to,
   prefix = "",
@@ -43,6 +43,7 @@ export function CountUp({
           },
           scrollTrigger: { trigger: ref.current, start: "top 85%" },
         });
+        document.fonts.ready.then(scheduleRefresh);
       });
       return () => mm.revert();
     },

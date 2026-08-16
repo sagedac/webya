@@ -2,7 +2,7 @@
 
 import { useRef, type ReactNode } from "react";
 import { useGSAP } from "@gsap/react";
-import { gsap } from "@/engine/gsap";
+import { gsap, scheduleRefresh } from "@/engine/gsap";
 
 export interface ParallaxProps {
   children: ReactNode;
@@ -27,6 +27,7 @@ export function Parallax({ children, speed = 0.3, className }: ParallaxProps) {
           ease: "none",
           scrollTrigger: { trigger: ref.current, start: "top bottom", end: "bottom top", scrub: true },
         });
+        document.fonts.ready.then(scheduleRefresh);
       });
 
       return () => mm.revert();

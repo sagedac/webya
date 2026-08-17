@@ -1,8 +1,28 @@
+import { existsSync } from "node:fs";
+import path from "node:path";
 import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { getAllSlugs, getTenantBySlug } from "@/lib/tenants";
 import { REGISTRO_CUSTOM } from "@/custom/registro";
+
+// Favicon por tenant: cada página de negocio (src/custom/{slug}/) ya busca
+// su logo en public/tenants/{slug}/ con esta misma lista de nombres
+// candidatos (patrón `foto()` ya usado en jmj, moonvet, etc.) — reusar el
+// mismo archivo como favicon evita mantener una segunda copia o una
+// convención aparte. Si el tenant no tiene ninguno de estos archivos
+// todavía, `icons` queda sin definir y Next cae solo al favicon.ico global
+// de src/app/ (el ícono genérico que ya usan todas las páginas hoy).
+const CANDIDATOS_FAVICON = ["logo.png", "logo.jpg", "logo-mark.png", "favicon.png", "favicon.ico"];
+
+function faviconDelTenant(slug: string): string | undefined {
+  for (const archivo of CANDIDATOS_FAVICON) {
+    if (existsSync(path.join(process.cwd(), "public", "tenants", slug, archivo))) {
+      return `/tenants/${slug}/${archivo}`;
+    }
+  }
+  return undefined;
+}
 
 // Fase 1 del ruteo (webya.md sección 5): sitioya.vercel.app/{slug}, sin
 // dominio propio de la plataforma todavía.
@@ -32,9 +52,12 @@ export async function generateMetadata({ params }: PageProps<"/[slug]">): Promis
   const fotoHero = data.content.fotos[0]?.url;
   const imagen = fotoHero ? (fotoHero.startsWith("http") ? fotoHero : `${baseUrl}${fotoHero}`) : undefined;
 
+  const favicon = faviconDelTenant(slug);
+
   return {
     title: data.tenant.nombre,
     description: data.content.textos.descripcion,
+    icons: favicon ? { icon: favicon } : undefined,
     openGraph: {
       title: data.tenant.nombre,
       description: data.content.textos.descripcion,

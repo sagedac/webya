@@ -85,7 +85,7 @@ function FichaProyecto({
     <button
       type="button"
       onClick={onAbrir}
-      className="group relative flex flex-col overflow-hidden rounded-sm border text-left transition hover:-translate-y-1"
+      className="group relative flex w-full flex-col overflow-hidden rounded-sm border text-left transition hover:-translate-y-1"
       style={{ borderColor: `${texto}30`, backgroundColor: fondo }}
     >
       <div className="relative aspect-[4/3] w-full overflow-hidden">
@@ -302,7 +302,7 @@ export function ProyectosGaleria({ categorias, acento, fondo, texto, telefono, e
       ) : (
         <div className="grid gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-3">
           {visibles.map((p, i) => (
-            <ScrollReveal key={`${p.categoria}-${p.nombre}-${i}`} delay={(i % 3) * 0.08} y={22}>
+            <ScrollReveal key={`${p.categoria}-${p.nombre}-${i}`} delay={(i % 3) * 0.08} y={22} className="w-full">
               <FichaProyecto
                 proyecto={p}
                 numero={String(i + 1).padStart(2, "0")}

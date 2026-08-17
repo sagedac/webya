@@ -192,6 +192,59 @@ export async function actualizarEstado(tenantId: string, estado: EstadoLanding):
   return full;
 }
 
+// Extensión de nombre de archivo a partir del MIME type — el nombre
+// original del archivo no importa (se guarda siempre como "favicon.{ext}",
+// con upsert), pero la extensión sí para que el navegador/CDN sirvan el
+// content-type correcto por la URL.
+const EXTENSION_POR_MIME: Record<string, string> = {
+  "image/png": "png",
+  "image/jpeg": "jpg",
+  "image/x-icon": "ico",
+  "image/vnd.microsoft.icon": "ico",
+  "image/svg+xml": "svg",
+};
+
+const FAVICON_MAX_BYTES = 2 * 1024 * 1024; // 2MB, generoso para un ícono
+
+// Sube el favicon al bucket de Storage "tenant-assets" (migración
+// 20260817120000_favicon_upload.sql) con el cliente de sesión — RLS
+// (tenant_assets_admin_insert/update, is_admin()) es lo que de verdad
+// impide que alguien sin sesión de admin escriba acá, no este código.
+// `upsert: true` con un nombre de archivo fijo por tenant ("favicon.{ext}")
+// para que resubir simplemente reemplace la anterior sin acumular archivos
+// huérfanos en el bucket.
+export async function actualizarFavicon(tenantId: string, file: File): Promise<string> {
+  const extension = EXTENSION_POR_MIME[file.type];
+  if (!extension) {
+    throw new Error("Formato no soportado — usa PNG, JPG, ICO o SVG.");
+  }
+  if (file.size > FAVICON_MAX_BYTES) {
+    throw new Error("El archivo pesa más de 2MB — usa una imagen más liviana.");
+  }
+
+  const supabase = await createServerSupabaseClient();
+  const path = `${tenantId}/favicon.${extension}`;
+
+  const { error: uploadError } = await supabase.storage.from("tenant-assets").upload(path, file, {
+    upsert: true,
+    contentType: file.type,
+  });
+  if (uploadError) throw new Error(uploadError.message);
+
+  const {
+    data: { publicUrl },
+  } = supabase.storage.from("tenant-assets").getPublicUrl(path);
+
+  // Cache-bust: mismo path siempre, así que sin esto el navegador/CDN
+  // podría seguir sirviendo la versión vieja tras un upsert.
+  const urlConVersion = `${publicUrl}?v=${Date.now()}`;
+
+  const { error: updateError } = await supabase.from("tenant_content").update({ favicon_url: urlConVersion }).eq("tenant_id", tenantId);
+  if (updateError) throw new Error(updateError.message);
+
+  return urlConVersion;
+}
+
 export async function actualizarDominio(
   tenantId: string,
   dominioTipo: DominioTipo,

@@ -6,13 +6,18 @@ import type { Metadata } from "next";
 import { getAllSlugs, getTenantBySlug } from "@/lib/tenants";
 import { REGISTRO_CUSTOM } from "@/custom/registro";
 
-// Favicon por tenant: cada página de negocio (src/custom/{slug}/) ya busca
-// su logo en public/tenants/{slug}/ con esta misma lista de nombres
-// candidatos (patrón `foto()` ya usado en jmj, moonvet, etc.) — reusar el
-// mismo archivo como favicon evita mantener una segunda copia o una
-// convención aparte. Si el tenant no tiene ninguno de estos archivos
-// todavía, `icons` queda sin definir y Next cae solo al favicon.ico global
-// de src/app/ (el ícono genérico que ya usan todas las páginas hoy).
+// Favicon por tenant, dos fuentes en orden de prioridad:
+//   1. content.faviconUrl — subido por el admin desde el panel (Storage,
+//      ver FormularioFavicon.tsx y migración 20260817120000_favicon_upload.sql,
+//      pedido explícito de Paul 2026-08-17 para no depender de un archivo
+//      colocado a mano en el repo).
+//   2. Archivo estático en public/tenants/{slug}/ con alguno de estos
+//      nombres (mismo patrón `foto()` que cada página de negocio ya usa
+//      para su logo del header, ej. jmj) — sigue funcionando para tenants
+//      que tienen su logo colocado así desde antes de que existiera la
+//      subida por panel.
+// Si ninguna de las dos existe, `icons` queda sin definir y Next cae al
+// favicon.ico genérico de src/app/.
 const CANDIDATOS_FAVICON = ["logo.png", "logo.jpg", "logo-mark.png", "favicon.png", "favicon.ico"];
 
 function faviconDelTenant(slug: string): string | undefined {
@@ -52,7 +57,7 @@ export async function generateMetadata({ params }: PageProps<"/[slug]">): Promis
   const fotoHero = data.content.fotos[0]?.url;
   const imagen = fotoHero ? (fotoHero.startsWith("http") ? fotoHero : `${baseUrl}${fotoHero}`) : undefined;
 
-  const favicon = faviconDelTenant(slug);
+  const favicon = data.content.faviconUrl ?? faviconDelTenant(slug);
 
   return {
     title: data.tenant.nombre,

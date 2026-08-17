@@ -38,6 +38,7 @@ export interface TenantContentRow {
   google_review_count: number | null;
   testimonios: Testimonio[] | null;
   cifras: Cifra[] | null;
+  favicon_url: string | null;
 }
 
 export function tenantFromRow(row: TenantRow): Tenant {
@@ -77,6 +78,7 @@ export function contentFromRow(row: TenantContentRow): TenantContent {
     googleReviewCount: row.google_review_count ?? null,
     testimonios: row.testimonios ?? [],
     cifras: row.cifras ?? [],
+    faviconUrl: row.favicon_url ?? null,
   };
 }
 
@@ -104,5 +106,6 @@ export function emptyContent(tenantId: string): TenantContent {
     googleReviewCount: null,
     testimonios: [],
     cifras: [],
+    faviconUrl: null,
   };
 }

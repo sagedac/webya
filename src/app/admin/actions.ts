@@ -7,6 +7,7 @@ import {
   actualizarContenido,
   actualizarDominio,
   actualizarEstado,
+  actualizarFavicon,
   crearTenant,
   getTenantById,
 } from "@/lib/admin-tenants";
@@ -285,4 +286,27 @@ export async function actualizarDominioAction(_prevState: AccionState, formData:
 
   revalidatePath(`/admin/${tenantId}`);
   return { error: null };
+}
+
+export interface FaviconState {
+  error: string | null;
+  faviconUrl: string | null;
+}
+
+export async function actualizarFaviconAction(_prevState: FaviconState, formData: FormData): Promise<FaviconState> {
+  const tenantId = String(formData.get("tenantId") ?? "");
+  const file = formData.get("favicon");
+
+  if (!(file instanceof File) || file.size === 0) {
+    return { error: "Selecciona un archivo.", faviconUrl: null };
+  }
+
+  try {
+    const faviconUrl = await actualizarFavicon(tenantId, file);
+    revalidatePath(`/admin/${tenantId}`);
+    revalidatePath("/", "layout");
+    return { error: null, faviconUrl };
+  } catch (e) {
+    return { error: (e as Error).message, faviconUrl: null };
+  }
 }

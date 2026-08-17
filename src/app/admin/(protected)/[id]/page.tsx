@@ -5,6 +5,7 @@ import { getTenantById } from "@/lib/admin-tenants";
 import { EditorContenido } from "@/app/admin/(protected)/[id]/_components/EditorContenido";
 import { EstadoLandingForm } from "@/app/admin/(protected)/[id]/_components/EstadoLandingForm";
 import { FormularioDominio } from "@/app/admin/(protected)/[id]/_components/FormularioDominio";
+import { FormularioFavicon } from "@/app/admin/(protected)/[id]/_components/FormularioFavicon";
 import { GestionAcceso } from "@/app/admin/(protected)/[id]/_components/GestionAcceso";
 
 function Card({ title, children }: { title: string; children: React.ReactNode }) {
@@ -70,6 +71,10 @@ export default async function TenantDetailPage({ params }: PageProps<"/admin/[id
 
       <Card title="Dominio">
         <FormularioDominio tenantId={tenant.id} dominioTipo={tenant.dominioTipo} dominioCustom={tenant.dominioCustom} />
+      </Card>
+
+      <Card title="Favicon">
+        <FormularioFavicon tenantId={tenant.id} faviconActual={content.faviconUrl} />
       </Card>
 
       <Card title="Acceso del cliente">

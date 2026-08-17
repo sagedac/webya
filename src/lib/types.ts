@@ -172,6 +172,12 @@ export interface TenantContent {
   rubro: Rubro | null;
   googleRating: number | null;
   googleReviewCount: number | null;
+  // URL pública del favicon subido por el admin (Supabase Storage, bucket
+  // tenant-assets — ver migración 20260817120000_favicon_upload.sql). null
+  // = sin favicon propio subido todavía; src/app/[slug]/page.tsx cae en ese
+  // caso al archivo estático en public/tenants/{slug}/ si existe, y si no,
+  // al favicon genérico de la plataforma.
+  faviconUrl: string | null;
 }
 
 export interface TenantWithContent {

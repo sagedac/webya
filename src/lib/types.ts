@@ -115,7 +115,11 @@ export interface Cifra {
 // (código a medida, 2026-08-17) — Architect existe en schema.org como
 // subtipo real de LocalBusiness (servicio profesional) y es más preciso que
 // "servicios" genérico para un estudio de diseño arquitectónico.
-export type Rubro = "restaurante" | "cafeteria" | "panaderia" | "carniceria_tienda" | "tienda_retail" | "joyeria" | "agencia_viajes" | "veterinaria" | "contratista_remodelacion" | "estudio_arquitectura" | "servicios" | "otro";
+// "jugueteria" se agregó junto con el caso ToyLand (código a medida,
+// 2026-08-17) — ToyStore existe en schema.org como subtipo real de Store
+// (mismo criterio que "joyeria"/JewelryStore) y es más preciso que
+// "tienda_retail" genérico para una juguetería.
+export type Rubro = "restaurante" | "cafeteria" | "panaderia" | "carniceria_tienda" | "tienda_retail" | "joyeria" | "agencia_viajes" | "veterinaria" | "contratista_remodelacion" | "estudio_arquitectura" | "jugueteria" | "servicios" | "otro";
 
 export const RUBROS_DISPONIBLES: { value: Rubro; label: string }[] = [
   { value: "restaurante", label: "Restaurante" },
@@ -128,6 +132,7 @@ export const RUBROS_DISPONIBLES: { value: Rubro; label: string }[] = [
   { value: "veterinaria", label: "Clínica veterinaria" },
   { value: "contratista_remodelacion", label: "Contratista / remodelación" },
   { value: "estudio_arquitectura", label: "Estudio de arquitectura" },
+  { value: "jugueteria", label: "Juguetería" },
   { value: "servicios", label: "Servicios profesionales" },
   { value: "otro", label: "Otro / sin especificar" },
 ];

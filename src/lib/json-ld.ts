@@ -31,6 +31,10 @@ const RUBRO_SCHEMA_TYPE: Record<Rubro, string> = {
   // Arquitectura (código a medida, 2026-08-17), mismo criterio que el
   // resto de rubros de esta lista.
   estudio_arquitectura: "Architect",
+  // ToyStore existe en schema.org como subtipo real de Store — se agregó
+  // junto con el caso ToyLand (código a medida, 2026-08-17), mismo
+  // criterio que "joyeria" (JewelryStore).
+  jugueteria: "ToyStore",
   servicios: "LocalBusiness",
   otro: "LocalBusiness",
 };

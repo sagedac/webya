@@ -222,6 +222,8 @@ Registro histórico de lo que existió antes del reset (por si sirve de referenc
 **Fase 2 (lanzamiento con clientes reales):** subdominio propio de la plataforma.
 `elestablo.sitioya.com` — requiere dominio propio + wildcard en Vercel.
 
+**Estado (2026-08-17):** el código de Fase 2 ya está listo en `src/proxy.ts` — resuelve `{slug}.${host de NEXT_PUBLIC_SITE_URL}` y lo reescribe internamente a `/{slug}` (misma página que ya sirve Fase 1, sin duplicar nada). Queda inactivo (no-op, Fase 1 sigue igual) hasta que `NEXT_PUBLIC_SITE_URL` exista en el entorno — y eso depende de 3 pasos que no son de código, los tiene que hacer Paul: (1) confirmar y comprar el dominio propio de la plataforma (sigue "tentativo" en sección 4), (2) agregarlo al proyecto de Vercel junto con el wildcard `*.dominio` (Settings → Domains) y apuntar su DNS ahí, (3) definir `NEXT_PUBLIC_SITE_URL=https://tudominio.com` en las variables de entorno de Vercel. Validado con pruebas unitarias del resolutor de subdominio (casos: subdominio de tenant, dominio raíz, `www`/`admin`/`panel` reservados, host de Vercel sin cambios, sub-subdominios) — no se pudo levantar un segundo servidor de desarrollo en paralelo para una prueba end-to-end real (Next bloquea una segunda instancia `next dev` sobre el mismo proyecto), así que falta una verificación en vivo una vez el dominio real esté conectado.
+
 **Fase 3 (cliente quiere su propio dominio):** dominio custom del cliente.
 1. Cliente ya tiene o compra su dominio
 2. Se agrega el dominio al proyecto de Vercel y se marca `dominio_tipo = dominio_propio`, `dominio_custom = ...` en `tenants`

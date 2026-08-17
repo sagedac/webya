@@ -26,6 +26,11 @@ const RUBRO_SCHEMA_TYPE: Record<Rubro, string> = {
   // agregó junto con el caso JMJ Painting & Remodeling (código a medida,
   // 2026-08-16), mismo criterio que joyeria/agencia_viajes/veterinaria.
   contratista_remodelacion: "GeneralContractor",
+  // Architect existe en schema.org como subtipo real de LocalBusiness
+  // (servicio profesional) — se agregó junto con el caso Estudio de
+  // Arquitectura (código a medida, 2026-08-17), mismo criterio que el
+  // resto de rubros de esta lista.
+  estudio_arquitectura: "Architect",
   servicios: "LocalBusiness",
   otro: "LocalBusiness",
 };

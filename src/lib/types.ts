@@ -111,7 +111,11 @@ export interface Cifra {
 // HomeAndConstructionBusiness (a su vez subtipo de LocalBusiness) y es más
 // preciso que "servicios" genérico para un contratista de remodelación y
 // pintura residencial.
-export type Rubro = "restaurante" | "cafeteria" | "panaderia" | "carniceria_tienda" | "tienda_retail" | "joyeria" | "agencia_viajes" | "veterinaria" | "contratista_remodelacion" | "servicios" | "otro";
+// "estudio_arquitectura" se agregó junto con el caso Estudio de Arquitectura
+// (código a medida, 2026-08-17) — Architect existe en schema.org como
+// subtipo real de LocalBusiness (servicio profesional) y es más preciso que
+// "servicios" genérico para un estudio de diseño arquitectónico.
+export type Rubro = "restaurante" | "cafeteria" | "panaderia" | "carniceria_tienda" | "tienda_retail" | "joyeria" | "agencia_viajes" | "veterinaria" | "contratista_remodelacion" | "estudio_arquitectura" | "servicios" | "otro";
 
 export const RUBROS_DISPONIBLES: { value: Rubro; label: string }[] = [
   { value: "restaurante", label: "Restaurante" },
@@ -123,6 +127,7 @@ export const RUBROS_DISPONIBLES: { value: Rubro; label: string }[] = [
   { value: "agencia_viajes", label: "Agencia de viajes" },
   { value: "veterinaria", label: "Clínica veterinaria" },
   { value: "contratista_remodelacion", label: "Contratista / remodelación" },
+  { value: "estudio_arquitectura", label: "Estudio de arquitectura" },
   { value: "servicios", label: "Servicios profesionales" },
   { value: "otro", label: "Otro / sin especificar" },
 ];

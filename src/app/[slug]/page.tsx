@@ -29,6 +29,31 @@ function faviconDelTenant(slug: string): string | undefined {
   return undefined;
 }
 
+// Bug real encontrado 2026-08-17 (primera subida real vía FormularioFavicon):
+// el favicon.ico genérico de src/app/ (convención de archivo de Next) queda
+// igual presente en el <head> junto con el `icons.icon` que devuelve este
+// generateMetadata — Next no lo reemplaza, solo agrega el segundo <link>.
+// Con dos <link rel="icon"> en la página, Chrome/Edge (confirmado también
+// en incógnito, así que no era caché) prefirieron el genérico porque
+// declara `sizes`/`type` explícitos y el nuestro no declaraba ninguno —
+// sin esa pista, el navegador no lo trató como candidato serio. Declarar
+// `type` explícito (siempre se sabe: el recorte del panel admin exporta
+// PNG siempre, ver src/lib/image-crop.ts; el archivo estático se
+// identifica por su extensión) resuelve la ambigüedad sin depender de que
+// Next deduplique los dos <link>.
+const TIPO_POR_EXTENSION: Record<string, string> = {
+  png: "image/png",
+  jpg: "image/jpeg",
+  jpeg: "image/jpeg",
+  ico: "image/x-icon",
+  svg: "image/svg+xml",
+};
+
+function tipoMimeDeUrl(url: string): string | undefined {
+  const extension = url.split("?")[0]?.split(".").pop()?.toLowerCase();
+  return extension ? TIPO_POR_EXTENSION[extension] : undefined;
+}
+
 // Fase 1 del ruteo (webya.md sección 5): sitioya.vercel.app/{slug}, sin
 // dominio propio de la plataforma todavía.
 export async function generateStaticParams() {
@@ -62,7 +87,7 @@ export async function generateMetadata({ params }: PageProps<"/[slug]">): Promis
   return {
     title: data.tenant.nombre,
     description: data.content.textos.descripcion,
-    icons: favicon ? { icon: favicon } : undefined,
+    icons: favicon ? { icon: { url: favicon, type: tipoMimeDeUrl(favicon) } } : undefined,
     openGraph: {
       title: data.tenant.nombre,
       description: data.content.textos.descripcion,

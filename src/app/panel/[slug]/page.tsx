@@ -16,7 +16,7 @@ export default async function PanelClientePage({ params }: PageProps<"/panel/[sl
   const { tenant, content } = data;
 
   return (
-    <div className="mx-auto max-w-2xl px-6 py-10">
+    <div className="mx-auto max-w-7xl px-6 py-10">
       <div className="mb-8 flex items-center justify-between">
         <div>
           <h1 className="text-xl font-semibold">{tenant.nombre}</h1>
@@ -38,7 +38,7 @@ export default async function PanelClientePage({ params }: PageProps<"/panel/[sl
           </form>
         </div>
       </div>
-      <EditorContenidoCliente slug={tenant.slug} content={content} />
+      <EditorContenidoCliente slug={tenant.slug} content={content} publicado={tenant.estadoLanding === "publicado"} />
     </div>
   );
 }

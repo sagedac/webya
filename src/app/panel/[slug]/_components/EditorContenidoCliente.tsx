@@ -2,12 +2,30 @@
 
 import { useActionState, useState } from "react";
 import { actualizarContenidoClienteAction } from "@/app/panel/actions";
+import { VistaPreviaLanding } from "@/app/panel/[slug]/_components/VistaPreviaLanding";
+import { SelectorFotos } from "@/components/SelectorFotos";
+import { SelectorHorarios } from "@/components/SelectorHorarios";
 import { FORMAS_PAGO_DISPONIBLES, type CategoriaProducto, type FaqItem, type FormaPago, type Foto, type HorarioDia, type Pilar, type TenantContent } from "@/lib/types";
 
 const ESTADO_INICIAL = { error: null };
 
-export function EditorContenidoCliente({ slug, content }: { slug: string; content: TenantContent }) {
+export function EditorContenidoCliente({ slug, content, publicado }: { slug: string; content: TenantContent; publicado: boolean }) {
   const [state, formAction, isPending] = useActionState(actualizarContenidoClienteAction, ESTADO_INICIAL);
+
+  // Cuenta cuántos guardados exitosos hubo — VistaPreviaLanding usa este
+  // número como key/querystring del iframe para forzar que recargue.
+  // Actualizar estado durante el render (comparando contra la última
+  // referencia de `state` vista) en vez de en un useEffect es el patrón que
+  // React recomienda para esto — useActionState ya devuelve un objeto
+  // nuevo en cada acción completada, así que no hace falta useEffect para
+  // "reaccionar" al cambio, y se evita el re-render en cascada que
+  // dispararía un setState dentro de un efecto.
+  const [ultimoEstadoVisto, setUltimoEstadoVisto] = useState(state);
+  const [previewToken, setPreviewToken] = useState(0);
+  if (state !== ultimoEstadoVisto) {
+    setUltimoEstadoVisto(state);
+    if (state.error === null) setPreviewToken((n) => n + 1);
+  }
 
   const [tagline, setTagline] = useState(content.textos.tagline);
   const [descripcion, setDescripcion] = useState(content.textos.descripcion);
@@ -27,6 +45,7 @@ export function EditorContenidoCliente({ slug, content }: { slug: string; conten
   const [faq, setFaq] = useState<FaqItem[]>(content.faq);
 
   return (
+    <div className="grid gap-8 lg:grid-cols-2 lg:items-start">
     <form action={formAction} className="space-y-6">
       <input type="hidden" name="slug" value={slug} />
       <input type="hidden" name="horariosJson" value={JSON.stringify(horarios)} />
@@ -68,40 +87,7 @@ export function EditorContenidoCliente({ slug, content }: { slug: string; conten
 
       <div>
         <label className="mb-2 block text-sm font-medium">Horario</label>
-        <div className="space-y-2">
-          {horarios.map((h, i) => (
-            <div key={i} className="flex gap-2">
-              <input
-                value={h.dia}
-                onChange={(e) =>
-                  setHorarios((prev) => prev.map((row, idx) => (idx === i ? { ...row, dia: e.target.value } : row)))
-                }
-                className="w-1/2 rounded-md border border-zinc-300 px-3 py-1.5 text-sm dark:border-zinc-700 dark:bg-zinc-900"
-              />
-              <input
-                value={h.horas}
-                onChange={(e) =>
-                  setHorarios((prev) => prev.map((row, idx) => (idx === i ? { ...row, horas: e.target.value } : row)))
-                }
-                className="w-1/2 rounded-md border border-zinc-300 px-3 py-1.5 text-sm dark:border-zinc-700 dark:bg-zinc-900"
-              />
-              <button
-                type="button"
-                onClick={() => setHorarios((prev) => prev.filter((_, idx) => idx !== i))}
-                className="px-2 text-sm text-zinc-400 hover:text-red-600"
-              >
-                ✕
-              </button>
-            </div>
-          ))}
-          <button
-            type="button"
-            onClick={() => setHorarios((prev) => [...prev, { dia: "", horas: "" }])}
-            className="text-sm text-blue-600 hover:underline dark:text-blue-400"
-          >
-            + Agregar horario
-          </button>
-        </div>
+        <SelectorHorarios horarios={horarios} onChange={setHorarios} />
       </div>
 
       <div>
@@ -174,46 +160,8 @@ export function EditorContenidoCliente({ slug, content }: { slug: string; conten
 
       <div>
         <label className="mb-2 block text-sm font-medium">Fotos</label>
-        <p className="mb-2 text-xs text-zinc-500">
-          Subida de archivos pendiente de Supabase Storage — por ahora pega la URL de la foto. La primera foto se usa
-          como fondo del hero de tu landing.
-        </p>
-        <div className="space-y-2">
-          {fotos.map((foto, i) => (
-            <div key={i} className="flex gap-2">
-              <input
-                value={foto.url}
-                onChange={(e) =>
-                  setFotos((prev) => prev.map((row, idx) => (idx === i ? { ...row, url: e.target.value } : row)))
-                }
-                placeholder="https://..."
-                className="flex-1 rounded-md border border-zinc-300 px-3 py-1.5 text-sm dark:border-zinc-700 dark:bg-zinc-900"
-              />
-              <input
-                value={foto.alt}
-                onChange={(e) =>
-                  setFotos((prev) => prev.map((row, idx) => (idx === i ? { ...row, alt: e.target.value } : row)))
-                }
-                placeholder="Descripción"
-                className="w-1/3 rounded-md border border-zinc-300 px-3 py-1.5 text-sm dark:border-zinc-700 dark:bg-zinc-900"
-              />
-              <button
-                type="button"
-                onClick={() => setFotos((prev) => prev.filter((_, idx) => idx !== i))}
-                className="px-2 text-sm text-zinc-400 hover:text-red-600"
-              >
-                ✕
-              </button>
-            </div>
-          ))}
-          <button
-            type="button"
-            onClick={() => setFotos((prev) => [...prev, { url: "", alt: "" }])}
-            className="text-sm text-blue-600 hover:underline dark:text-blue-400"
-          >
-            + Agregar foto
-          </button>
-        </div>
+        <p className="mb-2 text-xs text-zinc-500">La primera foto se usa como fondo del hero de tu landing.</p>
+        <SelectorFotos slug={slug} fotos={fotos} onChange={setFotos} />
       </div>
 
       <div>
@@ -357,6 +305,10 @@ export function EditorContenidoCliente({ slug, content }: { slug: string; conten
         {isPending ? "Guardando..." : "Guardar cambios"}
       </button>
     </form>
+      <div className="lg:sticky lg:top-6">
+        <VistaPreviaLanding slug={slug} publicado={publicado} refreshToken={previewToken} />
+      </div>
+    </div>
   );
 }
 

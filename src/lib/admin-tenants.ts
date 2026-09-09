@@ -1,4 +1,5 @@
 import "server-only";
+import { randomUUID } from "node:crypto";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { contentFromRow, emptyContent, tenantFromRow, type TenantContentRow, type TenantRow } from "@/lib/supabase/mappers";
 import type { DominioTipo, EstadoLanding, Nivel, Plan, TenantContent, TenantWithContent } from "@/lib/types";
@@ -243,6 +244,49 @@ export async function actualizarFavicon(tenantId: string, file: File): Promise<s
   if (updateError) throw new Error(updateError.message);
 
   return urlConVersion;
+}
+
+const EXTENSION_POR_MIME_FOTO: Record<string, string> = {
+  "image/png": "png",
+  "image/jpeg": "jpg",
+  "image/webp": "webp",
+};
+
+const FOTO_MAX_BYTES = 5 * 1024 * 1024; // 5MB — foto de galería, no favicon
+
+// Sube una foto de galería al bucket "tenant-assets" (mismo bucket que el
+// favicon, ver actualizarFavicon arriba) bajo `{tenantId}/fotos/{uuid}.ext`
+// — nombre único por foto (a diferencia del favicon, acá se van
+// acumulando varias, no se reemplaza una fija. Con el cliente de sesión:
+// la migración 20260909_tenant_photos_upload.sql agrega las políticas de
+// Storage que dejan escribir tanto a is_admin() como a is_tenant_owner()
+// del tenant dueño de esa carpeta — mismo criterio "RLS decide, no este
+// código" que el resto del archivo. Hoy solo la llama el panel de
+// autoedición (src/app/panel/actions.ts), pero no depende de quién
+// llama — is_admin() también pasa la política de Storage, así que el panel
+// admin puede sumarse a esto más adelante sin tocar esta función.
+export async function subirFotoTenant(tenantId: string, file: File): Promise<string> {
+  const extension = EXTENSION_POR_MIME_FOTO[file.type];
+  if (!extension) {
+    throw new Error("Formato no soportado — usa PNG, JPG o WEBP.");
+  }
+  if (file.size > FOTO_MAX_BYTES) {
+    throw new Error("La foto pesa más de 5MB — usa una imagen más liviana.");
+  }
+
+  const supabase = await createServerSupabaseClient();
+  const path = `${tenantId}/fotos/${randomUUID()}.${extension}`;
+
+  const { error: uploadError } = await supabase.storage.from("tenant-assets").upload(path, file, {
+    contentType: file.type,
+  });
+  if (uploadError) throw new Error(uploadError.message);
+
+  const {
+    data: { publicUrl },
+  } = supabase.storage.from("tenant-assets").getPublicUrl(path);
+
+  return publicUrl;
 }
 
 export async function actualizarDominio(

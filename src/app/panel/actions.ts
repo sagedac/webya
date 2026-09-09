@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { actualizarContenido, getTenantBySlugAdmin } from "@/lib/admin-tenants";
+import { actualizarContenido, getTenantBySlugAdmin, subirFotoTenant } from "@/lib/admin-tenants";
 import type { CategoriaProducto, FaqItem, FormaPago, Foto, HorarioDia, Pilar } from "@/lib/types";
 
 export interface AccionState {
@@ -122,4 +122,22 @@ export async function actualizarContenidoClienteAction(_prevState: AccionState, 
   revalidatePath(`/${slug}`);
   revalidatePath(`/panel/${slug}`);
   return { error: null };
+}
+
+// Llamada directa (no atada a un <form>/useActionState) desde SelectorFotos
+// — cada archivo soltado en el dropzone se sube en cuanto llega, sin
+// esperar a "Guardar cambios"; el resultado se agrega al arreglo `fotos` en
+// el estado del formulario del lado del cliente. RLS
+// (tenant_assets_owner_insert, migración 20260909120000) es lo que de
+// verdad impide subir a la carpeta de otro tenant, no este chequeo de slug.
+export async function subirFotoClienteAction(slug: string, file: File): Promise<{ url: string } | { error: string }> {
+  const data = await getTenantBySlugAdmin(slug);
+  if (!data) return { error: "Negocio no encontrado." };
+
+  try {
+    const url = await subirFotoTenant(data.tenant.id, file);
+    return { url };
+  } catch (e) {
+    return { error: (e as Error).message };
+  }
 }

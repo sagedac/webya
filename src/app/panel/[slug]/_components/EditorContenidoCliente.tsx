@@ -1,10 +1,12 @@
 "use client";
 
 import { useActionState, useState } from "react";
+import { Images, MessageCircle, Plus, Sparkles, Store, Users, X, type LucideIcon } from "lucide-react";
 import { actualizarContenidoClienteAction } from "@/app/panel/actions";
 import { VistaPreviaLanding } from "@/app/panel/[slug]/_components/VistaPreviaLanding";
 import { SelectorFotos } from "@/components/SelectorFotos";
 import { SelectorHorarios } from "@/components/SelectorHorarios";
+import { inputClass, labelClass, primaryButtonClass } from "@/lib/form-styles";
 import { FORMAS_PAGO_DISPONIBLES, type CategoriaProducto, type FaqItem, type FormaPago, type Foto, type HorarioDia, type Pilar, type TenantContent } from "@/lib/types";
 
 const ESTADO_INICIAL = { error: null };
@@ -46,269 +48,284 @@ export function EditorContenidoCliente({ slug, content, publicado }: { slug: str
 
   return (
     <div className="grid gap-8 lg:grid-cols-2 lg:items-start">
-    <form action={formAction} className="space-y-6">
-      <input type="hidden" name="slug" value={slug} />
-      <input type="hidden" name="horariosJson" value={JSON.stringify(horarios)} />
-      <input type="hidden" name="categoriasJson" value={JSON.stringify(categorias)} />
-      <input type="hidden" name="fotosJson" value={JSON.stringify(fotos)} />
-      <input type="hidden" name="fotoDestacadaJson" value={JSON.stringify(fotoDestacada)} />
-      <input type="hidden" name="pilaresJson" value={JSON.stringify(pilares)} />
-      <input type="hidden" name="pasosJson" value={JSON.stringify(pasos)} />
-      <input type="hidden" name="formasPagoJson" value={JSON.stringify(formasPago)} />
-      <input type="hidden" name="faqJson" value={JSON.stringify(faq)} />
+      <form action={formAction} className="space-y-5">
+        <input type="hidden" name="slug" value={slug} />
+        <input type="hidden" name="horariosJson" value={JSON.stringify(horarios)} />
+        <input type="hidden" name="categoriasJson" value={JSON.stringify(categorias)} />
+        <input type="hidden" name="fotosJson" value={JSON.stringify(fotos)} />
+        <input type="hidden" name="fotoDestacadaJson" value={JSON.stringify(fotoDestacada)} />
+        <input type="hidden" name="pilaresJson" value={JSON.stringify(pilares)} />
+        <input type="hidden" name="pasosJson" value={JSON.stringify(pasos)} />
+        <input type="hidden" name="formasPagoJson" value={JSON.stringify(formasPago)} />
+        <input type="hidden" name="faqJson" value={JSON.stringify(faq)} />
 
-      <div className="grid gap-4 sm:grid-cols-2">
-        <Campo label="Frase corta (tagline)" name="tagline" value={tagline} onChange={setTagline} />
-        <Campo label="Qué te distingue" name="diferenciador" value={diferenciador} onChange={setDiferenciador} />
-        <Campo label="WhatsApp" name="telefonoWhatsapp" value={telefonoWhatsapp} onChange={setTelefonoWhatsapp} />
-        <Campo label="Dirección" name="direccion" value={direccion} onChange={setDireccion} />
-      </div>
+        <Seccion icon={Store} titulo="Identidad" descripcion="Cómo se presenta tu negocio en el hero de la landing.">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Campo label="Frase corta (tagline)" name="tagline" value={tagline} onChange={setTagline} />
+            <Campo label="Qué te distingue" name="diferenciador" value={diferenciador} onChange={setDiferenciador} />
+          </div>
+          <div>
+            <label className={labelClass}>Descripción del negocio</label>
+            <textarea
+              name="descripcion"
+              value={descripcion}
+              onChange={(e) => setDescripcion(e.target.value)}
+              rows={3}
+              className={inputClass}
+            />
+          </div>
+        </Seccion>
 
-      <div>
-        <label className="mb-1 block text-sm font-medium">Descripción del negocio</label>
-        <textarea
-          name="descripcion"
-          value={descripcion}
-          onChange={(e) => setDescripcion(e.target.value)}
-          rows={3}
-          className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-900"
-        />
-      </div>
+        <Seccion icon={MessageCircle} titulo="Contacto y horario" descripcion="De dónde sale el botón de WhatsApp y cuándo apareces como abierto.">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Campo label="WhatsApp" name="telefonoWhatsapp" value={telefonoWhatsapp} onChange={setTelefonoWhatsapp} />
+            <Campo label="Dirección" name="direccion" value={direccion} onChange={setDireccion} />
+          </div>
+          <div>
+            <label className={`${labelClass} mb-2`}>Horario</label>
+            <SelectorHorarios horarios={horarios} onChange={setHorarios} />
+          </div>
+        </Seccion>
 
-      <div>
-        <label className="mb-1 block text-sm font-medium">Nota sobre precios</label>
-        <input
-          value={precioNota}
-          onChange={(e) => setPrecioNota(e.target.value)}
-          name="precioNota"
-          className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-900"
-        />
-      </div>
-
-      <div>
-        <label className="mb-2 block text-sm font-medium">Horario</label>
-        <SelectorHorarios horarios={horarios} onChange={setHorarios} />
-      </div>
-
-      <div>
-        <label className="mb-2 block text-sm font-medium">Productos por categoría</label>
-        <div className="space-y-3">
-          {categorias.map((cat, i) => (
-            <div key={i} className="flex gap-2">
-              <input
-                value={cat.nombre}
-                onChange={(e) =>
-                  setCategorias((prev) => prev.map((row, idx) => (idx === i ? { ...row, nombre: e.target.value } : row)))
-                }
-                placeholder="Categoría"
-                className="w-1/3 rounded-md border border-zinc-300 px-3 py-1.5 text-sm dark:border-zinc-700 dark:bg-zinc-900"
-              />
-              <input
-                value={cat.items.join(", ")}
-                onChange={(e) =>
-                  setCategorias((prev) =>
-                    prev.map((row, idx) =>
-                      idx === i
-                        ? { ...row, items: e.target.value.split(",").map((s) => s.trim()).filter(Boolean) }
-                        : row,
-                    ),
-                  )
-                }
-                placeholder="Productos separados por coma"
-                className="flex-1 rounded-md border border-zinc-300 px-3 py-1.5 text-sm dark:border-zinc-700 dark:bg-zinc-900"
-              />
-              <button
-                type="button"
-                onClick={() => setCategorias((prev) => prev.filter((_, idx) => idx !== i))}
-                className="px-2 text-sm text-zinc-400 hover:text-red-600"
-              >
-                ✕
-              </button>
+        <Seccion icon={Sparkles} titulo="Catálogo y precios" descripcion="Lo que vendes, agrupado por categoría, y cómo hablas de precios.">
+          <div>
+            <label className={`${labelClass} mb-2`}>Productos por categoría</label>
+            <div className="space-y-3">
+              {categorias.map((cat, i) => (
+                <div key={i} className="flex gap-2">
+                  <div className="w-1/3">
+                    <input
+                      value={cat.nombre}
+                      onChange={(e) =>
+                        setCategorias((prev) => prev.map((row, idx) => (idx === i ? { ...row, nombre: e.target.value } : row)))
+                      }
+                      placeholder="Categoría"
+                      className={inputClass}
+                    />
+                  </div>
+                  <div className="flex-1">
+                    <input
+                      value={cat.items.join(", ")}
+                      onChange={(e) =>
+                        setCategorias((prev) =>
+                          prev.map((row, idx) =>
+                            idx === i
+                              ? { ...row, items: e.target.value.split(",").map((s) => s.trim()).filter(Boolean) }
+                              : row,
+                          ),
+                        )
+                      }
+                      placeholder="Productos separados por coma"
+                      className={inputClass}
+                    />
+                  </div>
+                  <BotonQuitar onClick={() => setCategorias((prev) => prev.filter((_, idx) => idx !== i))} />
+                </div>
+              ))}
+              <BotonAgregar label="Agregar categoría" onClick={() => setCategorias((prev) => [...prev, { nombre: "", items: [] }])} />
             </div>
-          ))}
-          <button
-            type="button"
-            onClick={() => setCategorias((prev) => [...prev, { nombre: "", items: [] }])}
-            className="text-sm text-blue-600 hover:underline dark:text-blue-400"
-          >
-            + Agregar categoría
-          </button>
-        </div>
-      </div>
+          </div>
 
-      <div>
-        <label className="mb-2 block text-sm font-medium">Foto de producto destacado</label>
-        <p className="mb-2 text-xs text-zinc-500">
-          La foto que &ldquo;flota&rdquo; en la sección de efecto visual de tu landing. Mejor resultado con fondo
-          limpio o transparente.
-        </p>
-        <div className="flex gap-2">
-          <input
-            value={fotoDestacada.url}
-            onChange={(e) => setFotoDestacada((prev) => ({ ...prev, url: e.target.value }))}
-            placeholder="https://..."
-            className="flex-1 rounded-md border border-zinc-300 px-3 py-1.5 text-sm dark:border-zinc-700 dark:bg-zinc-900"
-          />
-          <input
-            value={fotoDestacada.alt}
-            onChange={(e) => setFotoDestacada((prev) => ({ ...prev, alt: e.target.value }))}
-            placeholder="Descripción"
-            className="w-1/3 rounded-md border border-zinc-300 px-3 py-1.5 text-sm dark:border-zinc-700 dark:bg-zinc-900"
-          />
-        </div>
-      </div>
+          <div>
+            <label className={labelClass}>Nota sobre precios</label>
+            <input value={precioNota} onChange={(e) => setPrecioNota(e.target.value)} name="precioNota" className={inputClass} />
+          </div>
 
-      <div>
-        <label className="mb-2 block text-sm font-medium">Fotos</label>
-        <p className="mb-2 text-xs text-zinc-500">La primera foto se usa como fondo del hero de tu landing.</p>
-        <SelectorFotos slug={slug} fotos={fotos} onChange={setFotos} />
-      </div>
-
-      <div>
-        <label className="mb-2 block text-sm font-medium">Por qué elegirte (3 pilares)</label>
-        <p className="mb-2 text-xs text-zinc-500">Sin al menos uno, esta sección no aparece en tu landing.</p>
-        <div className="space-y-3">
-          {pilares.map((pilar, i) => (
-            <div key={i} className="flex gap-2">
-              <input
-                value={pilar.titulo}
-                onChange={(e) => setPilares((prev) => prev.map((row, idx) => (idx === i ? { ...row, titulo: e.target.value } : row)))}
-                placeholder="Título"
-                className="w-1/3 rounded-md border border-zinc-300 px-3 py-1.5 text-sm dark:border-zinc-700 dark:bg-zinc-900"
-              />
-              <input
-                value={pilar.descripcion}
-                onChange={(e) =>
-                  setPilares((prev) => prev.map((row, idx) => (idx === i ? { ...row, descripcion: e.target.value } : row)))
-                }
-                placeholder="1-2 líneas"
-                className="flex-1 rounded-md border border-zinc-300 px-3 py-1.5 text-sm dark:border-zinc-700 dark:bg-zinc-900"
-              />
-              <button
-                type="button"
-                onClick={() => setPilares((prev) => prev.filter((_, idx) => idx !== i))}
-                className="px-2 text-sm text-zinc-400 hover:text-red-600"
-              >
-                ✕
-              </button>
+          <div>
+            <label className={`${labelClass} mb-2`}>Formas de pago</label>
+            <div className="flex flex-wrap gap-4">
+              {FORMAS_PAGO_DISPONIBLES.map(({ value, label }) => (
+                <label key={value} className="flex items-center gap-1.5 text-sm text-zinc-700 dark:text-zinc-300">
+                  <input
+                    type="checkbox"
+                    checked={formasPago.includes(value)}
+                    onChange={(e) =>
+                      setFormasPago((prev) => (e.target.checked ? [...prev, value] : prev.filter((f) => f !== value)))
+                    }
+                    className="accent-indigo-600"
+                  />
+                  {label}
+                </label>
+              ))}
             </div>
-          ))}
-          <button
-            type="button"
-            onClick={() => setPilares((prev) => [...prev, { titulo: "", descripcion: "" }])}
-            className="text-sm text-blue-600 hover:underline dark:text-blue-400"
-          >
-            + Agregar pilar
-          </button>
-        </div>
-      </div>
+          </div>
+        </Seccion>
 
-      <div>
-        <label className="mb-2 block text-sm font-medium">Cómo pedir (pasos)</label>
-        <p className="mb-2 text-xs text-zinc-500">Sin personalizar, se muestran 3 pasos genéricos por defecto.</p>
-        <div className="space-y-2">
-          {pasos.map((paso, i) => (
-            <div key={i} className="flex gap-2">
-              <input
-                value={paso}
-                onChange={(e) => setPasos((prev) => prev.map((row, idx) => (idx === i ? e.target.value : row)))}
-                placeholder={`Paso ${i + 1}`}
-                className="flex-1 rounded-md border border-zinc-300 px-3 py-1.5 text-sm dark:border-zinc-700 dark:bg-zinc-900"
-              />
-              <button
-                type="button"
-                onClick={() => setPasos((prev) => prev.filter((_, idx) => idx !== i))}
-                className="px-2 text-sm text-zinc-400 hover:text-red-600"
-              >
-                ✕
-              </button>
+        <Seccion icon={Images} titulo="Fotos" descripcion="La primera foto se usa como fondo del hero de tu landing.">
+          <div>
+            <label className={labelClass}>Foto de producto destacado</label>
+            <p className="mb-2 text-xs text-zinc-500">
+              La foto que &ldquo;flota&rdquo; en la sección de efecto visual de tu landing. Mejor resultado con fondo
+              limpio o transparente.
+            </p>
+            <div className="flex gap-2">
+              <div className="flex-1">
+                <input
+                  value={fotoDestacada.url}
+                  onChange={(e) => setFotoDestacada((prev) => ({ ...prev, url: e.target.value }))}
+                  placeholder="https://..."
+                  className={inputClass}
+                />
+              </div>
+              <div className="w-1/3">
+                <input
+                  value={fotoDestacada.alt}
+                  onChange={(e) => setFotoDestacada((prev) => ({ ...prev, alt: e.target.value }))}
+                  placeholder="Descripción"
+                  className={inputClass}
+                />
+              </div>
             </div>
-          ))}
-          <button
-            type="button"
-            onClick={() => setPasos((prev) => [...prev, ""])}
-            className="text-sm text-blue-600 hover:underline dark:text-blue-400"
-          >
-            + Agregar paso
-          </button>
-        </div>
-      </div>
+          </div>
 
-      <div>
-        <label className="mb-2 block text-sm font-medium">Formas de pago</label>
-        <div className="flex gap-4">
-          {FORMAS_PAGO_DISPONIBLES.map(({ value, label }) => (
-            <label key={value} className="flex items-center gap-1.5 text-sm text-zinc-700 dark:text-zinc-300">
-              <input
-                type="checkbox"
-                checked={formasPago.includes(value)}
-                onChange={(e) =>
-                  setFormasPago((prev) => (e.target.checked ? [...prev, value] : prev.filter((f) => f !== value)))
-                }
-                className="accent-zinc-900 dark:accent-white"
-              />
-              {label}
-            </label>
-          ))}
-        </div>
-      </div>
+          <div>
+            <label className={labelClass}>Fotos de la galería</label>
+            <SelectorFotos slug={slug} fotos={fotos} onChange={setFotos} />
+          </div>
+        </Seccion>
 
-      <div className="grid gap-4 sm:grid-cols-2">
-        <Campo label="Instagram (URL)" name="instagramUrl" value={instagramUrl} onChange={setInstagramUrl} />
-        <Campo label="Facebook (URL)" name="facebookUrl" value={facebookUrl} onChange={setFacebookUrl} />
-      </div>
-
-      <div>
-        <label className="mb-2 block text-sm font-medium">Preguntas frecuentes</label>
-        <p className="mb-2 text-xs text-zinc-500">Sin personalizar, se muestran algunas preguntas genéricas por defecto.</p>
-        <div className="space-y-3">
-          {faq.map((item, i) => (
-            <div key={i} className="flex gap-2">
-              <input
-                value={item.pregunta}
-                onChange={(e) => setFaq((prev) => prev.map((row, idx) => (idx === i ? { ...row, pregunta: e.target.value } : row)))}
-                placeholder="Pregunta"
-                className="w-1/3 rounded-md border border-zinc-300 px-3 py-1.5 text-sm dark:border-zinc-700 dark:bg-zinc-900"
-              />
-              <input
-                value={item.respuesta}
-                onChange={(e) => setFaq((prev) => prev.map((row, idx) => (idx === i ? { ...row, respuesta: e.target.value } : row)))}
-                placeholder="Respuesta"
-                className="flex-1 rounded-md border border-zinc-300 px-3 py-1.5 text-sm dark:border-zinc-700 dark:bg-zinc-900"
-              />
-              <button
-                type="button"
-                onClick={() => setFaq((prev) => prev.filter((_, idx) => idx !== i))}
-                className="px-2 text-sm text-zinc-400 hover:text-red-600"
-              >
-                ✕
-              </button>
+        <Seccion icon={Users} titulo="Confianza" descripcion="Lo que convierte una visita en un pedido.">
+          <div>
+            <label className={labelClass}>Por qué elegirte (3 pilares)</label>
+            <p className="mb-2 text-xs text-zinc-500">Sin al menos uno, esta sección no aparece en tu landing.</p>
+            <div className="space-y-3">
+              {pilares.map((pilar, i) => (
+                <div key={i} className="flex gap-2">
+                  <div className="w-1/3">
+                    <input
+                      value={pilar.titulo}
+                      onChange={(e) => setPilares((prev) => prev.map((row, idx) => (idx === i ? { ...row, titulo: e.target.value } : row)))}
+                      placeholder="Título"
+                      className={inputClass}
+                    />
+                  </div>
+                  <div className="flex-1">
+                    <input
+                      value={pilar.descripcion}
+                      onChange={(e) =>
+                        setPilares((prev) => prev.map((row, idx) => (idx === i ? { ...row, descripcion: e.target.value } : row)))
+                      }
+                      placeholder="1-2 líneas"
+                      className={inputClass}
+                    />
+                  </div>
+                  <BotonQuitar onClick={() => setPilares((prev) => prev.filter((_, idx) => idx !== i))} />
+                </div>
+              ))}
+              <BotonAgregar label="Agregar pilar" onClick={() => setPilares((prev) => [...prev, { titulo: "", descripcion: "" }])} />
             </div>
-          ))}
-          <button
-            type="button"
-            onClick={() => setFaq((prev) => [...prev, { pregunta: "", respuesta: "" }])}
-            className="text-sm text-blue-600 hover:underline dark:text-blue-400"
-          >
-            + Agregar pregunta
-          </button>
-        </div>
-      </div>
+          </div>
 
-      {state.error && <p className="text-sm text-red-600">{state.error}</p>}
+          <div>
+            <label className={labelClass}>Cómo pedir (pasos)</label>
+            <p className="mb-2 text-xs text-zinc-500">Sin personalizar, se muestran 3 pasos genéricos por defecto.</p>
+            <div className="space-y-2">
+              {pasos.map((paso, i) => (
+                <div key={i} className="flex gap-2">
+                  <input
+                    value={paso}
+                    onChange={(e) => setPasos((prev) => prev.map((row, idx) => (idx === i ? e.target.value : row)))}
+                    placeholder={`Paso ${i + 1}`}
+                    className={`${inputClass} flex-1`}
+                  />
+                  <BotonQuitar onClick={() => setPasos((prev) => prev.filter((_, idx) => idx !== i))} />
+                </div>
+              ))}
+              <BotonAgregar label="Agregar paso" onClick={() => setPasos((prev) => [...prev, ""])} />
+            </div>
+          </div>
 
-      <button
-        type="submit"
-        disabled={isPending}
-        className="rounded-md bg-zinc-900 px-4 py-2 text-sm font-medium text-white disabled:opacity-40 dark:bg-white dark:text-zinc-900"
-      >
-        {isPending ? "Guardando..." : "Guardar cambios"}
-      </button>
-    </form>
+          <div>
+            <label className={labelClass}>Preguntas frecuentes</label>
+            <p className="mb-2 text-xs text-zinc-500">Sin personalizar, se muestran algunas preguntas genéricas por defecto.</p>
+            <div className="space-y-3">
+              {faq.map((item, i) => (
+                <div key={i} className="flex gap-2">
+                  <div className="w-1/3">
+                    <input
+                      value={item.pregunta}
+                      onChange={(e) => setFaq((prev) => prev.map((row, idx) => (idx === i ? { ...row, pregunta: e.target.value } : row)))}
+                      placeholder="Pregunta"
+                      className={inputClass}
+                    />
+                  </div>
+                  <div className="flex-1">
+                    <input
+                      value={item.respuesta}
+                      onChange={(e) => setFaq((prev) => prev.map((row, idx) => (idx === i ? { ...row, respuesta: e.target.value } : row)))}
+                      placeholder="Respuesta"
+                      className={inputClass}
+                    />
+                  </div>
+                  <BotonQuitar onClick={() => setFaq((prev) => prev.filter((_, idx) => idx !== i))} />
+                </div>
+              ))}
+              <BotonAgregar label="Agregar pregunta" onClick={() => setFaq((prev) => [...prev, { pregunta: "", respuesta: "" }])} />
+            </div>
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Campo label="Instagram (URL)" name="instagramUrl" value={instagramUrl} onChange={setInstagramUrl} />
+            <Campo label="Facebook (URL)" name="facebookUrl" value={facebookUrl} onChange={setFacebookUrl} />
+          </div>
+        </Seccion>
+
+        {state.error && <p className="text-sm text-red-600">{state.error}</p>}
+
+        <button type="submit" disabled={isPending} className={primaryButtonClass}>
+          {isPending ? "Guardando..." : "Guardar cambios"}
+        </button>
+      </form>
       <div className="lg:sticky lg:top-6">
         <VistaPreviaLanding slug={slug} publicado={publicado} refreshToken={previewToken} />
       </div>
     </div>
+  );
+}
+
+// Cada bloque del formulario es una tarjeta con ícono + título — mismo
+// tratamiento visual que el panel admin ya usa a nivel de página (Card en
+// admin/(protected)/[id]/page.tsx), pero aplicado dentro del formulario de
+// contenido, que hasta ahora era una lista plana de campos sin agrupar ni
+// estilo propio (pedido explícito de Paul, 2026-09-09, al ver el panel real
+// junto al preview elegante de la derecha).
+function Seccion({ icon: Icon, titulo, descripcion, children }: { icon: LucideIcon; titulo: string; descripcion?: string; children: React.ReactNode }) {
+  return (
+    <section className="rounded-xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-950">
+      <div className="mb-4 flex items-start gap-2.5">
+        <Icon className="mt-0.5 h-4 w-4 shrink-0 text-indigo-500" strokeWidth={2} aria-hidden />
+        <div>
+          <h2 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">{titulo}</h2>
+          {descripcion && <p className="mt-0.5 text-xs text-zinc-500">{descripcion}</p>}
+        </div>
+      </div>
+      <div className="space-y-4">{children}</div>
+    </section>
+  );
+}
+
+function BotonQuitar({ onClick }: { onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="flex w-8 shrink-0 items-center justify-center rounded-lg text-zinc-400 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950"
+    >
+      <X className="h-4 w-4" strokeWidth={2} />
+    </button>
+  );
+}
+
+function BotonAgregar({ label, onClick }: { label: string; onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="flex items-center gap-1 text-sm font-medium text-indigo-600 hover:text-indigo-500 dark:text-indigo-400"
+    >
+      <Plus className="h-3.5 w-3.5" strokeWidth={2.5} />
+      {label}
+    </button>
   );
 }
 
@@ -325,13 +342,8 @@ function Campo({
 }) {
   return (
     <div>
-      <label className="mb-1 block text-sm font-medium">{label}</label>
-      <input
-        name={name}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-900"
-      />
+      <label className={labelClass}>{label}</label>
+      <input name={name} value={value} onChange={(e) => onChange(e.target.value)} className={inputClass} />
     </div>
   );
 }

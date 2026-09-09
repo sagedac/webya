@@ -90,6 +90,34 @@ const PORTAFOLIO: PiezaPortafolio[] = [
     etiqueta: "Demo",
     imagen: "/26st/portfolio/trazojoyas.jpg",
   },
+  {
+    slug: "travel-agency",
+    nombre: "Travel Agency",
+    descripcion: "Agencia de viajes con operación en Sudamérica — cada tour se presenta como un pase de embarque real, con precio fijo por destino.",
+    etiqueta: "Cliente real",
+    imagen: "/26st/portfolio/travel-agency.jpg",
+  },
+  {
+    slug: "jyw-cc",
+    nombre: "JYW CC",
+    descripcion: "Joyería de plata 925, acero quirúrgico y oro laminado — cada pieza certifica su material real, sin sorpresas.",
+    etiqueta: "Cliente real",
+    imagen: "/26st/portfolio/jyw-cc.jpg",
+  },
+  {
+    slug: "estudio-arquitectura",
+    nombre: "Estudio de Arquitectura",
+    descripcion: "Vivienda, comercio e institucional — portafolio de proyectos con ficha técnica y galería por obra.",
+    etiqueta: "Cliente real",
+    imagen: "/26st/portfolio/estudio-arquitectura.jpg",
+  },
+  {
+    slug: "toyland",
+    nombre: "ToyLand",
+    descripcion: "Juguetería temática anime en el Batán Shopping, Cuenca — figuras, Funko Pop y peluches, colgados como en la tienda real.",
+    etiqueta: "Cliente real",
+    imagen: "/26st/portfolio/toyland.jpg",
+  },
 ];
 
 const PILARES = [

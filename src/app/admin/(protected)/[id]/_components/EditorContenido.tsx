@@ -3,6 +3,7 @@
 import { useActionState, useState } from "react";
 import { Plus, X } from "lucide-react";
 import { actualizarContenidoAction } from "@/app/admin/actions";
+import { SelectorHorarios } from "@/components/SelectorHorarios";
 import { inputClass, labelClass, primaryButtonClass } from "@/lib/form-styles";
 import {
   FORMAS_PAGO_DISPONIBLES,
@@ -117,37 +118,7 @@ export function EditorContenido({ tenantId, content }: { tenantId: string; conte
 
       <div>
         <label className={`${labelClass} mb-2`}>Horario</label>
-        <div className="space-y-2">
-          {horarios.map((h, i) => (
-            <div key={i} className="flex gap-2">
-              <input
-                value={h.dia}
-                onChange={(e) => setHorarios((prev) => prev.map((row, idx) => (idx === i ? { ...row, dia: e.target.value } : row)))}
-                className={`${inputClass} w-1/2`}
-              />
-              <input
-                value={h.horas}
-                onChange={(e) => setHorarios((prev) => prev.map((row, idx) => (idx === i ? { ...row, horas: e.target.value } : row)))}
-                className={`${inputClass} w-1/2`}
-              />
-              <button
-                type="button"
-                onClick={() => setHorarios((prev) => prev.filter((_, idx) => idx !== i))}
-                className="flex w-8 shrink-0 items-center justify-center rounded-lg text-zinc-400 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950"
-              >
-                <X className="h-4 w-4" strokeWidth={2} />
-              </button>
-            </div>
-          ))}
-          <button
-            type="button"
-            onClick={() => setHorarios((prev) => [...prev, { dia: "", horas: "" }])}
-            className="flex items-center gap-1 text-sm font-medium text-indigo-600 hover:text-indigo-500 dark:text-indigo-400"
-          >
-            <Plus className="h-3.5 w-3.5" strokeWidth={2.5} />
-            Agregar horario
-          </button>
-        </div>
+        <SelectorHorarios horarios={horarios} onChange={setHorarios} />
       </div>
 
       <div>
